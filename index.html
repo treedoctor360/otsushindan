@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>樹木診断アプリ-簡易版-</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js">
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --g1: #1b4010;
+      --g2: #2a6b1e;
+      --g3: #3d8c28;
+      --g4: #6bb84e;
+      --g5: #d4edba;
+      --sky: #f0f6eb;
+      --bark-l: #f3ede5;
+      --blue: #1565c0;
+      --blue-l: #e3f2fd;
+      --warn: #fff8e1;
+      --warn-b: #f9a825;
+      --danger: #ffebee;
+      --danger-b: #c62828;
+      --safe: #e8f5e9;
+      --safe-b: #2e7d32;
+      --s0bg: #c8e6c9;
+      --s0c: #1b5e20;
+      --s1bg: #f0f4c3;
+      --s1c: #558b2f;
+      --s2bg: #ffe0b2;
+      --s2c: #e65100;
+      --s3bg: #ffccbc;
+      --s3c: #bf360c;
+      --s4bg: #ffcdd2;
+      --s4c: #b71c1c;
+      --hAbg: #c8e6c9;
+      --hAc: #1b5e20;
+      --hBbg: #fff9c4;
+      --hBc: #5d4037;
+      --hCbg: #ffe0b2;
+      --hCc: #bf360c;
+      --hDbg: #ffcdd2;
+      --hDc: #b71c1c;
+      --shadow: rgba(27, 64, 16, .10);
+      --radius: 20px;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+      background: var(--sky);
+      color: #1a2e0a;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+    button {
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+```
+ruby {
+  ruby-align: center;
+}
+rt {
+  font-size: .55em;
+  color: #5a7a4a;
+  letter-spacing: .02em;
+  line-height: 1;
+}
+
+.app-header {
+  background: linear-gradient(150deg, var(--g1), var(--g2) 55%, var(--g3));
+  color: white;
+  padding: 20px 16px 18px;
+  border-radius: 0 0 28px 28px;
+  box-shadow: 0 4px 20px rgba(27, 64, 16, .3);
+  text-align: center;
+}
+.app-header .logo {
+  font-size: 2.2rem;
+  display: inline-block;
+}
+.app-header h1 {
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: .04em;
+}
+.app-header h1 span {
+  color: #a8e278;
+}
+.app-header p {
+  font-size: .78rem;
+  opacity: .85;
+  margin-top: 3px;
+}
+
+.tabs {
+  display: flex;
+  gap: 5px;
+  margin: 14px 12px;
+  background: white;
+  padding: 5px;
+  border-radius: 50px;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.tab-btn {
+  flex: 1;
+  padding: 10px 4px;
+  border: none;
+  background: transparent;
+  border-radius: 40px;
+  font-weight: 700;
+  font-size: .78rem;
+  color: #5a6a4a;
+  min-width: 60px;
+  transition: .15s;
+}
+.tab-btn.active {
+  background: var(--g2);
+  color: white;
+}
+.tab-panel {
+  display: none;
+  padding: 0 12px;
+}
+.tab-panel.active {
+  display: block;
+}
+
+.card {
+  background: white;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px var(--shadow);
+  overflow: hidden;
+}
+.card-hdr {
+  padding: 12px 16px;
+  font-weight: 700;
+  font-size: .9rem;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.card-hdr.green {
+  background: var(--g5);
+  border-bottom: 2px solid rgba(0, 0, 0, .05);
+}
+.card-hdr.brown {
+  background: var(--bark-l);
+  border-bottom: 2px solid rgba(0, 0, 0, .05);
+}
+.card-hdr.blue {
+  background: var(--blue-l);
+  border-bottom: 2px solid rgba(0, 0, 0, .05);
+}
+.card-sn {
+  background: var(--g2);
+  color: white;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: .75rem;
+  flex-shrink: 0;
+}
+.card-body {
+  padding: 14px 16px;
+}
+
+.frow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.c2>* {
+  flex: 1 1 calc(50% - 5px);
+  min-width: 130px;
+}
+.fg {
+  display: flex;
+  flex-direction: column;
+}
+.lbl {
+  font-weight: 700;
+  font-size: .82rem;
+  margin-bottom: 4px;
+  color: #3a5a2a;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.req {
+  color: #c62828;
+}
+.inp {
+  padding: 11px 13px;
+  border: 1.5px solid #cde0b5;
+  border-radius: 12px;
+  font-size: .95rem;
+  background: #fdfdfd;
+  font-family: inherit;
+}
+.inp:focus {
+  outline: none;
+  border-color: var(--g3);
+}
+
+.help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: var(--g3);
+  color: white;
+  border-radius: 50%;
+  font-size: .72rem;
+  font-weight: 900;
+  cursor: pointer;
+  flex-shrink: 0;
+  user-select: none;
+  border: none;
+}
+
+.rgroup {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 5px;
+}
+.rbtn {
+  flex: 1 0 auto;
+  min-width: 54px;
+  padding: 8px 4px;
+  background: #f2f2f2;
+  border: 1.5px solid #ccc;
+  border-radius: 26px;
+  font-weight: 700;
+  font-size: .82rem;
+  text-align: center;
+  line-height: 1.3;
+  transition: all .12s;
+}
+.rbtn small {
+  display: block;
+  font-weight: 400;
+  font-size: .58rem;
+  opacity: .85;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+.rbtn:hover {
+  border-color: var(--g3);
+  background: #eafbe0;
+}
+.rbtn.sel-0 {
+  background: var(--s0bg);
+  border-color: var(--s0c);
+  color: var(--s0c);
+}
+.rbtn.sel-1 {
+  background: var(--s1bg);
+  border-color: var(--s1c);
+  color: var(--s1c);
+}
+.rbtn.sel-2 {
+  background: var(--s2bg);
+  border-color: var(--s2c);
+  color: var(--s2c);
+}
+.rbtn.sel-3 {
+  background: var(--s3bg);
+  border-color: var(--s3c);
+  color: var(--s3c);
+}
+.rbtn.sel-4 {
+  background: var(--s4bg);
+  border-color: var(--s4c);
+  color: var(--s4c);
+}
+.rbtn.sel-A {
+  background: var(--hAbg);
+  border-color: var(--hAc);
+  color: var(--hAc);
+}
+.rbtn.sel-B {
+  background: var(--hBbg);
+  border-color: var(--hBc);
+  color: var(--hBc);
+}
+.rbtn.sel-C {
+  background: var(--hCbg);
+  border-color: var(--hCc);
+  color: var(--hCc);
+}
+.rbtn.sel-D {
+  background: var(--hDbg);
+  border-color: var(--hDc);
+  color: var(--hDc);
+}
+.rbtn-off {
+  background: #e8e8e8;
+  color: #b0b0b0;
+  border-color: #ddd;
+  cursor: not-allowed;
+  opacity: .5;
+  pointer-events: none;
+}
+.item-row {
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed #dde8cc;
+}
+.item-row:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.grade-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-weight: 900;
+  font-size: .9rem;
+}
+.grade-A {
+  background: #2e7d32;
+  color: white;
+}
+.grade-B {
+  background: #f9a825;
+  color: #222;
+}
+.grade-C {
+  background: #e65100;
+  color: white;
+}
+.grade-D {
+  background: #b71c1c;
+  color: white;
+}
+.overall-box {
+  background: #f0f7ea;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.overall-grade {
+  font-size: 2.8rem;
+  font-weight: 900;
+  line-height: 1;
+}
+.score-box {
+  background: #f5f9f0;
+  border-radius: 12px;
+  padding: 11px 14px;
+  margin-bottom: 12px;
+}
+
+.btn-pri {
+  background: linear-gradient(135deg, var(--g3), var(--g2));
+  color: white;
+  border: none;
+  padding: 15px;
+  border-radius: 50px;
+  font-weight: 900;
+  font-size: 1.05rem;
+  width: 100%;
+}
+.btn-sec {
+  background: #eee;
+  border: 1px solid #bbb;
+  padding: 10px 14px;
+  border-radius: 36px;
+  font-weight: 700;
+  font-size: .82rem;
+}
+.btn-danger {
+  background: #ffcdd2;
+  border: 1px solid #c62828;
+  color: #b71c1c;
+}
+.btn-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.photo-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 12px;
+}
+.photo-item {
+  position: relative;
+  width: 86px;
+  height: 86px;
+}
+.photo-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 2px solid #ccc;
+}
+.photo-del {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #c62828;
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-weight: 900;
+  font-size: .8rem;
+  z-index: 5;
+}
+
+.record-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.record-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+.record-name {
+  font-weight: 900;
+  font-size: .98rem;
+}
+.record-meta {
+  font-size: .78rem;
+  color: #5a6a4a;
+  line-height: 1.8;
+}
+.record-acts {
+  display: flex;
+  gap: 7px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.search-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.search-bar .inp {
+  flex: 1;
+}
+
+.popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .6);
+  z-index: 1000;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.popup-overlay.open {
+  display: flex;
+}
+.popup-sheet {
+  background: white;
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 18px 16px 36px;
+}
+.popup-close {
+  width: 100%;
+  margin-bottom: 14px;
+  background: var(--g2);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 12px;
+  font-weight: 900;
+  font-size: .9rem;
+}
+.popup-sheet h3 {
+  font-size: 1.08rem;
+  font-weight: 900;
+  color: var(--g1);
+  margin-bottom: 4px;
+}
+.popup-source {
+  font-size: .68rem;
+  color: #8a9a7a;
+  margin-bottom: 12px;
+}
+.popup-summary {
+  background: #f5f9f0;
+  border-left: 3px solid var(--g3);
+  border-radius: 8px;
+  padding: 10px 13px;
+  font-size: .83rem;
+  color: #3a5a2a;
+  margin-bottom: 12px;
+  line-height: 1.7;
+}
+.popup-check {
+  background: var(--blue-l);
+  border-left: 3px solid var(--blue);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: .8rem;
+  color: #1a3a8a;
+  margin-bottom: 8px;
+  line-height: 1.7;
+}
+.popup-danger {
+  background: var(--danger);
+  border-left: 3px solid var(--danger-b);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: .8rem;
+  color: #b71c1c;
+  line-height: 1.7;
+}
+
+.help-imgs-wrap {
+  margin-bottom: 14px;
+}
+.help-imgs {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0d2208;
+  aspect-ratio: 4/3;
+  max-height: 230px;
+}
+.help-imgs img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+.help-imgs img.hi-active {
+  display: block;
+}
+.help-imgs .hi-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, .65);
+  font-size: .78rem;
+  text-align: center;
+  gap: 8px;
+  padding: 16px;
+}
+.hi-caption {
+  font-size: .68rem;
+  color: #8a9a7a;
+  text-align: center;
+  margin-top: 5px;
+  min-height: 16px;
+}
+.hi-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.hi-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #bbb;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: .15s;
+}
+.hi-dot.active {
+  background: var(--g3);
+  transform: scale(1.3);
+}
+.hi-arrow {
+  background: var(--g5);
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: .95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--g1);
+  cursor: pointer;
+}
+.hi-arrow:disabled {
+  opacity: .3;
+  cursor: default;
+}
+
+.hi-upload-area {
+  border: 1.5px dashed var(--g3);
+  border-radius: 10px;
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--g5);
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+.hi-upload-area span {
+  font-size: .75rem;
+  color: var(--g2);
+  font-weight: 700;
+}
+.hi-upload-input {
+  display: none;
+}
+.hi-imgs-list {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.hi-thumb-wrap {
+  position: relative;
+  width: 56px;
+  height: 56px;
+}
+.hi-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid var(--g4);
+}
+.hi-thumb-del {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #c62828;
+  color: white;
+  border: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: .65rem;
+  font-weight: 900;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hi-preset-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--g3);
+  color: white;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: .6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.manual-section {
+  margin-bottom: 20px;
+}
+.manual-section h3 {
+  background: var(--g5);
+  border-left: 4px solid var(--g3);
+  border-radius: 10px 10px 0 0;
+  padding: 11px 14px;
+  font-size: .92rem;
+  font-weight: 900;
+  color: var(--g1);
+}
+.manual-body {
+  background: white;
+  border-radius: 0 0 10px 10px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 8px var(--shadow);
+  font-size: .84rem;
+  line-height: 1.8;
+  color: #3a4a2a;
+}
+.manual-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-size: .8rem;
+}
+.manual-body th {
+  background: var(--g2);
+  color: white;
+  padding: 7px 9px;
+  text-align: left;
+}
+.manual-body td {
+  padding: 7px 9px;
+  border-bottom: 1px solid #eee;
+}
+.tip-box {
+  background: var(--safe);
+  border-left: 3px solid var(--safe-b);
+  border-radius: 8px;
+  padding: 9px 12px;
+  margin: 8px 0;
+  font-size: .8rem;
+  color: #1b5e20;
+}
+.warn-box {
+  background: var(--warn);
+  border-left: 3px solid var(--warn-b);
+  border-radius: 8px;
+  padding: 9px 12px;
+  margin: 8px 0;
+  font-size: .8rem;
+  color: #5d4037;
+}
+.step-flow {
+  background: #f0f7ea;
+  border-radius: 12px;
+  padding: 13px;
+  font-size: .82rem;
+  font-weight: 700;
+  line-height: 2.2;
+  color: var(--g1);
+}
+.badge-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+.mbadge {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: .8rem;
+}
+.alert-banner {
+  background: var(--warn);
+  border: 1.5px solid var(--warn-b);
+  border-radius: 14px;
+  padding: 11px 14px;
+  font-size: .8rem;
+  color: #5d4037;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px)
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0)
+  }
+}
+.tab-panel.active {
+  animation: fadeUp .25s ease;
+}
+```
+
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="logo">🌳</div>
+    <h1>き<span>のこえ</span></h1>
+    <p>木のお医者さんアプリ ― 科学的樹木診断（国交省指針準拠）</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('inspect')">📋<br>診断入力</button>
+    <button class="tab-btn" onclick="showTab('records')">📚<br>記録一覧</button>
+    <button class="tab-btn" onclick="showTab('manual')">📖<br>使い方</button>
+  </div>
+
+  <!-- ① 診断入力 -->
+
+  <div class="tab-panel active" id="tab-inspect">
+    <div class="card">
+      <div class="card-hdr green"><div class="card-sn">Ⅰ</div>木の<ruby>基本情報<rt>きほんじょうほう</rt></ruby></div>
+      <div class="card-body">
+        <div class="frow c2">
+          <div class="fg"><label class="lbl">木のNo.<span class="req">*</span></label><input class="inp" id="treeNo" placeholder="例：K-001"></div>
+          <div class="fg"><label class="lbl"><ruby>調査日<rt>ちょうさび</rt></ruby><span class="req">*</span></label><input type="date" class="inp" id="surveyDate"></div>
+          <div class="fg"><label class="lbl"><ruby>天候<rt>てんこう</rt></ruby></label><select class="inp" id="weather"><option>晴れ</option><option>曇り</option><option>雨</option></select></div>
+          <div class="fg"><label class="lbl"><ruby>調<rt>しら</rt></ruby>べた人<span class="req">*</span></label><input class="inp" id="inspector" placeholder="あなたの名前"></div>
+        </div>
+        <div class="frow c2">
+          <div class="fg"><label class="lbl">木の<ruby>種類<rt>しゅるい</rt></ruby><span class="req">*</span></label><input class="inp" id="species" placeholder="例：サクラ、ケヤキ"></div>
+          <div class="fg"><label class="lbl"><ruby>愛称<rt>あいしょう</rt></ruby>・ニックネーム</label><input class="inp" id="nickname" placeholder="例：大きなクスノキ"></div>
+        </div>
+        <div class="fg" style="margin-bottom:10px;"><label class="lbl"><ruby>場所<rt>ばしょ</rt></ruby>（<ruby>公園名<rt>こうえんめい</rt></ruby>・<ruby>住所<rt>じゅうしょ</rt></ruby>など）</label><input class="inp" id="location" placeholder="例：○○公園 正門前"></div>
+        <div class="frow c2">
+          <div class="fg"><label class="lbl"><ruby>高<rt>たか</rt></ruby>さ (m・だいたいで)</label><input type="number" step="0.1" class="inp" id="treeHeight" placeholder="例：8"></div>
+          <div class="fg"><label class="lbl"><ruby>幹<rt>みき</rt></ruby>の太さ・<ruby>周囲<rt>しゅうい</rt></ruby> (cm)</label><input type="number" class="inp" id="trunkGirth" placeholder="例：120"></div>
+        </div>
+      </div>
+    </div>
+
+```
+<div class="card">
+  <div class="card-hdr green"><div class="card-sn">📸</div><ruby>写真記録<rt>しゃしんきろく</rt></ruby></div>
+  <div class="card-body">
+    <input type="file" id="photoInput" accept="image/*" multiple style="display:none">
+    <div class="frow" style="gap:8px;">
+      <button class="btn-sec" onclick="takePhoto()">📷 カメラで<ruby>撮影<rt>さつえい</rt></ruby></button>
+      <button class="btn-sec" onclick="selectFromAlbum()">🖼️ アルバムから</button>
+      <span id="photoCounter" style="font-size:.78rem;color:#5a6a4a;align-self:center;">📸 0<ruby>枚<rt>まい</rt></ruby></span>
+    </div>
+    <div class="tip-box" style="margin-top:8px;">💡 木<ruby>全体<rt>ぜんたい</rt></ruby>・<ruby>根元<rt>ねもと</rt></ruby>・<ruby>気<rt>き</rt></ruby>になる<ruby>場所<rt>ばしょ</rt></ruby>を<ruby>撮<rt>と</rt></ruby>っておこう！</div>
+    <div id="photoContainer" class="photo-area"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-hdr blue"><div class="card-sn">⚠️</div>Ⅰ-3 <ruby>安全<rt>あんぜん</rt></ruby>チェック（<ruby>健全度<rt>けんぜんど</rt></ruby>） ― A〜Dで<ruby>選<rt>えら</rt></ruby>んでね</div>
+  <div class="card-body">
+    <div class="alert-banner" style="background:var(--blue-l);border-color:#90caf9;color:#1a3a8a;"><span>💡</span><span><strong>A</strong>（<ruby>問題<rt>もんだい</rt></ruby>なし）→ <strong>D</strong>（とても<ruby>危険<rt>きけん</rt></ruby>）の4<ruby>段階<rt>だんかい</rt></ruby>。<strong>Dがあったらすぐ<ruby>市役所<rt>しやくしょ</rt></ruby>や<ruby>専門家(樹木医)<rt>せんもんか(じゅもくい)</rt></ruby>に<ruby>知<rt>し</rt></ruby>らせて！</strong></span></div>
+    <div id="health-items"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-hdr brown"><div class="card-sn">🍄</div>キノコの<ruby>発生<rt>はっせい</rt></ruby></div>
+  <div class="card-body">
+    <div style="display:flex;flex-wrap:wrap;gap:10px;font-size:.85rem;">
+      <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" class="fungus-check" value="ベッコウタケ">🔴 ベッコウタケ（<ruby>強<rt>つよ</rt></ruby>）</label>
+      <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" class="fungus-check" value="コフキサルノコシカケ">🔴 コフキサルノコシカケ（<ruby>強<rt>つよ</rt></ruby>）</label>
+      <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" class="fungus-check" value="カイメンタケ">🟠 カイメンタケ（<ruby>中<rt>ちゅう</rt></ruby>）</label>
+      <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" class="fungus-check" value="カワラタケ">🟡 カワラタケ（<ruby>弱<rt>よわ</rt></ruby>）</label>
+      <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" class="fungus-check" value="その他">その<ruby>他<rt>た</rt></ruby></label>
+    </div>
+    <input class="inp" id="fungusOther" placeholder="その他のキノコ名" style="margin-top:10px;">
+    <div class="warn-box" style="margin-top:8px;">🔴 キノコ＝<ruby>木<rt>き</rt></ruby>の<ruby>中<rt>なか</rt></ruby>が<ruby>腐<rt>くさ</rt></ruby>っているサイン。<ruby>強<rt>つよ</rt></ruby>いキノコがある<ruby>木<rt>き</rt></ruby>は<ruby>専門家<rt>せんもんか</rt></ruby>に<ruby>相談<rt>そうだん</rt></ruby>を！</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-hdr green"><div class="card-sn">📊</div><ruby>総合判定<rt>そうごうはんてい</rt></ruby>・<ruby>診断結果<rt>しんだんけっか</rt></ruby></div>
+  <div class="card-body">
+    <div class="overall-box">
+      <div class="overall-grade grade-badge" id="overallGradeDisplay">-</div>
+      <div>
+        <div><strong><ruby>総合判定<rt>そうごうはんてい</rt></ruby></strong></div>
+        <div id="overallLevelDisplay" style="font-weight:700;font-size:.9rem;"></div>
+      </div>
+    </div>
+    <div class="alert-banner">⚠️ この<ruby>診断<rt>しんだん</rt></ruby>は<strong><ruby>目安<rt>めやす</rt></ruby></strong>です。C・D<ruby>判定<rt>はんてい</rt></ruby>や<ruby>危険<rt>きけん</rt></ruby>が<ruby>疑<rt>うたが</rt></ruby>われる<ruby>場合<rt>ばあい</rt></ruby>は<strong><ruby>樹木医<rt>じゅもくい</rt></ruby>など<ruby>専門家<rt>せんもんか</rt></ruby></strong>に<ruby>相談<rt>そうだん</rt></ruby>してください。</div>
+    <textarea class="inp" id="overallComment" rows="3" placeholder="気づいたこと・全体の様子など自由に書いてね" style="margin-top:12px;width:100%;"></textarea>
+    <div style="margin-top:12px;">
+      <div class="lbl"><ruby>必要<rt>ひつよう</rt></ruby>な<ruby>対処<rt>たいしょ</rt></ruby>（<ruby>当<rt>あ</rt></ruby>てはまるものを<ruby>選<rt>えら</rt></ruby>んでね）</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;font-size:.83rem;">
+        <label><input type="checkbox" class="measure-check" value="伐採"> <ruby>伐採<rt>ばっさい</rt></ruby></label>
+        <label><input type="checkbox" class="measure-check" value="剪定"> <ruby>剪定<rt>せんてい</rt></ruby></label>
+        <label><input type="checkbox" class="measure-check" value="支柱補修"> <ruby>支柱補修<rt>しちゅうほしゅう</rt></ruby></label>
+        <label><input type="checkbox" class="measure-check" value="土壌改良"> <ruby>土壌改良<rt>どじょうかいりょう</rt></ruby></label>
+        <label><input type="checkbox" class="measure-check" value="経過観察"> <ruby>経過観察<rt>けいかかんさつ</rt></ruby></label>
+        <label><input type="checkbox" class="measure-check" value="専門家へ報告"> <ruby>専門家<rt>せんもんか</rt></ruby>へ<ruby>報告<rt>ほうこく</rt></ruby></label>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn-pri" onclick="saveRecord()">💾 <ruby>保存<rt>ほぞん</rt></ruby>する</button></div>
+    <div class="btn-row">
+      <button class="btn-sec" onclick="exportSingleExcel()">📊 Excelで<ruby>出力<rt>しゅつりょく</rt></ruby></button>
+      <button class="btn-sec" onclick="resetForm()">🔄 リセット</button>
+      <button class="btn-sec btn-danger" id="cancelEditBtn" style="display:none" onclick="cancelEdit()">❌ キャンセル</button>
+    </div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- ② 記録一覧 -->
+
+  <div class="tab-panel" id="tab-records">
+    <div class="search-bar">
+      <input class="inp" id="searchInput" placeholder="🔍 種類・場所・名前で検索" oninput="renderRecords()">
+      <select class="inp" style="max-width:120px;font-size:.8rem;padding:10px 8px;" id="sortSelect" onchange="renderRecords()">
+        <option value="date-desc">新→古</option>
+        <option value="date-asc">古→新</option>
+        <option value="grade">判定順</option>
+      </select>
+    </div>
+    <div id="recordsList"></div>
+    <div class="btn-row" style="margin-top:8px;">
+      <button class="btn-sec" onclick="exportAllExcel()">📊 <ruby>全件<rt>ぜんけん</rt></ruby>Excel<ruby>出力<rt>しゅつりょく</rt></ruby></button>
+      <button class="btn-sec" onclick="exportJSON()">📦 バックアップ</button>
+      <button class="btn-sec" onclick="importJSON()">📥 <ruby>読<rt>よ</rt></ruby>み<ruby>込<rt>こ</rt></ruby>み</button>
+    </div>
+    <input type="file" id="jsonInput" accept=".json" style="display:none" onchange="loadJSON(event)">
+  </div>
+
+  <!-- ③ 使い方 -->
+
+  <div class="tab-panel" id="tab-manual">
+    <div class="alert-banner">⚠️ <ruby>判定<rt>はんてい</rt></ruby>C・Dの<ruby>場合<rt>ばあい</rt></ruby>は<ruby>必<rt>かなら</rt></ruby>ず<strong><ruby>樹木医<rt>じゅもくい</rt></ruby>などの<ruby>専門家<rt>せんもんか</rt></ruby></strong>にご<ruby>相談<rt>そうだん</rt></ruby>ください。</div>
+
+```
+<div class="manual-section">
+  <h3>🌳 このアプリについて</h3>
+  <div class="manual-body">
+    <p>「きのこえ」は、<ruby>公園<rt>こうえん</rt></ruby>や<ruby>学校<rt>がっこう</rt></ruby>・<ruby>街路<rt>がいろ</rt></ruby>の<ruby>木<rt>き</rt></ruby>の<ruby>健康<rt>けんこう</rt></ruby>をみんなで<ruby>記録<rt>きろく</rt></ruby>・<ruby>発見<rt>はっけん</rt></ruby>するアプリです。<ruby>国土交通省<rt>こくどこうつうしょう</rt></ruby>の<ruby>樹木点検指針<rt>じゅもくてんけんししん</rt></ruby>（案）に<ruby>基<rt>もと</rt></ruby>づき、<strong><ruby>健全度<rt>けんぜんど</rt></ruby>（<ruby>安全性<rt>あんぜんせい</rt></ruby>）</strong>14<ruby>項目<rt>こうもく</rt></ruby>でA〜D<ruby>判定<rt>はんてい</rt></ruby>します。</p>
+    <div class="tip-box">🌿 <ruby>小学<rt>しょうがく</rt></ruby>5<ruby>年生<rt>ねんせい</rt></ruby>〜<ruby>大人<rt>おとな</rt></ruby>まで<ruby>使<rt>つか</rt></ruby>えます。<ruby>難<rt>むずか</rt></ruby>しいことは「?」ボタンを<ruby>押<rt>お</rt></ruby>して<ruby>確認<rt>かくにん</rt></ruby>！</div>
+  </div>
+</div>
+
+<div class="manual-section">
+  <h3>📱 <ruby>使<rt>つか</rt></ruby>い<ruby>方<rt>かた</rt></ruby>の<ruby>流<rt>なが</rt></ruby>れ</h3>
+  <div class="manual-body">
+    <div class="step-flow">① <ruby>基本情報<rt>きほんじょうほう</rt></ruby>を<ruby>入力<rt>にゅうりょく</rt></ruby> → ② <ruby>写真<rt>しゃしん</rt></ruby>を<ruby>撮<rt>と</rt></ruby>る → ③ <ruby>安全<rt>あんぜん</rt></ruby>チェック（A〜D）を<ruby>選<rt>えら</rt></ruby>ぶ → ④ キノコの<ruby>有無<rt>うむ</rt></ruby>を<ruby>記録<rt>きろく</rt></ruby> → ⑤ 💾 <ruby>保存<rt>ほぞん</rt></ruby>する</div>
+  </div>
+</div>
+
+<div class="manual-section">
+  <h3>⚠️ <ruby>安全<rt>あんぜん</rt></ruby>チェック（<ruby>健全度<rt>けんぜんど</rt></ruby>）の<ruby>見<rt>み</rt></ruby>かた</h3>
+  <div class="manual-body">
+    <div class="badge-row">
+      <span class="mbadge grade-A">A：<ruby>問題<rt>もんだい</rt></ruby>なし</span>
+      <span class="mbadge grade-B">B：<ruby>軽<rt>かる</rt></ruby>い<ruby>異常<rt>いじょう</rt></ruby></span>
+      <span class="mbadge grade-C">C：<ruby>危険<rt>きけん</rt></ruby>あり</span>
+      <span class="mbadge grade-D">D：<ruby>非常<rt>ひじょう</rt></ruby>に<ruby>危険<rt>きけん</rt></ruby>！</span>
+    </div>
+    <div class="warn-box">⚠️ D<ruby>判定<rt>はんてい</rt></ruby>の<ruby>木<rt>き</rt></ruby>には<ruby>近<rt>ちか</rt></ruby>づかないようにして、すぐに<ruby>大人<rt>おとな</rt></ruby>や<ruby>管理者<rt>かんりしゃ</rt></ruby>に<ruby>伝<rt>つた</rt></ruby>えてください！</div>
+  </div>
+</div>
+
+<div class="manual-section">
+  <h3>🍄 キノコについて</h3>
+  <div class="manual-body">
+    <table>
+      <tr><th>キノコ</th><th><ruby>危険度<rt>きけんど</rt></ruby></th><th><ruby>特徴<rt>とくちょう</rt></ruby></th></tr>
+      <tr><td>🔴 ベッコウタケ</td><td><ruby>強<rt>つよ</rt></ruby>（<ruby>最危険<rt>さいきけん</rt></ruby>）</td><td>べっ<ruby>甲色<rt>こうしょく</rt></ruby>・<ruby>半円形<rt>はんえんけい</rt></ruby></td></tr>
+      <tr><td>🔴 コフキサルノコシカケ</td><td><ruby>強<rt>つよ</rt></ruby></td><td><ruby>白<rt>しろ</rt></ruby>い<ruby>粉<rt>こな</rt></ruby>をふく・<ruby>棚状<rt>たなじょう</rt></ruby></td></tr>
+      <tr><td>🟠 カイメンタケ</td><td><ruby>中<rt>ちゅう</rt></ruby></td><td>スポンジ<ruby>状<rt>じょう</rt></ruby>・<ruby>黄橙色<rt>きだいだいしょく</rt></ruby></td></tr>
+      <tr><td>🟡 カワラタケ</td><td><ruby>弱<rt>よわ</rt></ruby></td><td><ruby>小<rt>ちい</rt></ruby>さな<ruby>半円形<rt>はんえんけい</rt></ruby>・<ruby>縞模様<rt>しまもよう</rt></ruby></td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="manual-section">
+  <h3>💾 データの<ruby>保存<rt>ほぞん</rt></ruby>と<ruby>出力<rt>しゅつりょく</rt></ruby></h3>
+  <div class="manual-body">
+    <ul style="padding-left:16px;line-height:2.2;">
+      <li><ruby>保存<rt>ほぞん</rt></ruby>したデータはこの<ruby>端末<rt>たんまつ</rt></ruby>に<ruby>自動保存<rt>じどうほぞん</rt></ruby>されます</li>
+      <li>「📊 Excel<ruby>出力<rt>しゅつりょく</rt></ruby>」：<ruby>調査結果<rt>ちょうさけっか</rt></ruby>を<ruby>表形式<rt>ひょうけいしき</rt></ruby>でダウンロード</li>
+      <li>「📦 バックアップ」：データをJSONファイルとして<ruby>保存<rt>ほぞん</rt></ruby>（<ruby>大切<rt>たいせつ</rt></ruby>に！）</li>
+      <li>「📥 <ruby>読<rt>よ</rt></ruby>み<ruby>込<rt>こ</rt></ruby>み」：バックアップファイルを<ruby>戻<rt>もど</rt></ruby>す</li>
+    </ul>
+    <div class="tip-box">💡 <ruby>定期的<rt>ていきてき</rt></ruby>にバックアップを<ruby>取<rt>と</rt></ruby>っておくと<ruby>安心<rt>あんしん</rt></ruby>！</div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- ヘルプポップアップ -->
+
+  <div class="popup-overlay" id="helpOverlay">
+    <div class="popup-sheet">
+      <button class="popup-close" onclick="closeHelp()">✕ 閉じる</button>
+      <div id="helpContent"></div>
+      <div class="help-imgs-wrap" id="helpImgsWrap" style="display:none;">
+        <div class="help-imgs" id="helpImgsBox"></div>
+        <div id="helpImgsCaption" class="hi-caption"></div>
+        <div class="hi-nav" id="helpImgsNav"></div>
+      </div>
+      <label class="hi-upload-area" id="helpUploadArea" style="display:none;">
+        <span>📸 この項目にイメージ写真を追加する（タップで選択）</span>
+        <input type="file" class="hi-upload-input" id="helpImgInput" accept="image/*" multiple onchange="addHelpImages(event)">
+      </label>
+      <div class="hi-imgs-list" id="helpThumbList"></div>
+    </div>
+  </div>
+
+  <script>
+    // ─── ルビヘルパー ───
+    const R = (kanji, kana) => `<ruby>${kanji}<rt>${kana}</rt></ruby>`;
+
+    // ─── プリセット画像（Base64 SVG） ───
+    const DEFAULT_IMGS = {
+      'sway': [
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMjQwIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YwZjhlYSIgcng9IjEyIi8+PHJlY3QgeT0iMTgwIiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjYzhhOTdhIi8+PHJlY3QgeT0iMTc4IiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjgiIGZpbGw9IiM4QjY5MTQiLz48ZyB0cmFuc2Zvcm09InJvdGF0ZSgtMTIgMTYwIDE4MCkiPjxyZWN0IHg9IjE0NSIgeT0iNjAiIHdpZHRoPSIzMCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiM3YTUyMzAiIHJ4PSI2Ii8+PGVsbGlwc2UgY3g9IjE2MCIgY3k9IjU1IiByeD0iNTUiIHJ5PSI0NSIgZmlsbD0iIzNkOGMyOCIgb3BhY2l0eT0iLjkiLz48L2c+PGVsbGlwc2UgY3g9IjE0OCIgY3k9IjE4MiIgcng9IjIyIiByeT0iNyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzYyODI4IiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1kYXNoYXJyYXk9IjUsMyIvPjx0ZXh0IHg9IjE4MiIgeT0iMTg2IiBmb250LXNpemU9IjEzIiBmaWxsPSIjYzYyODI4IiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPumamemWk++8gTwvdGV4dD48cGF0aCBkPSJNNjAsMTAwIFE0MCwxMjAgNjAsMTQwIiBzdHJva2U9IiNlNjUxMDAiIHN0cm9rZS13aWR0aD0iMyIgZmlsbD0ibm9uZSIvPjxwb2x5Z29uIHBvaW50cz0iNTcsMTQwIDY3LDE0MyA2MCwxMzMiIGZpbGw9IiNlNjUxMDAiLz48dGV4dCB4PSIxMCIgeT0iMTI1IiBmb250LXNpemU9IjEyIiBmaWxsPSIjZTY1MTAwIiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuaPuuOCjOOCizwvdGV4dD48cmVjdCB4PSIxMCIgeT0iMTkyIiB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQwIiBmaWxsPSJ3aGl0ZSIgcng9IjgiIG9wYWNpdHk9Ii44OCIvPjx0ZXh0IHg9IjE2MCIgeT0iMjA3IiBmb250LXNpemU9IjEyIiBmaWxsPSIjYzYyODI4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuagueWFg+OBjOWLleOBj+ODu+WcsOmdouOBq+mamemWkyDihpIgROWIpOWumjwvdGV4dD48dGV4dCB4PSIxNjAiIHk9IjIyNCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzFiNDAxMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuagueOBjOiFkOOBo+OBpuOBhOOCi+OCteOCpOODs+OBp+OBmTwvdGV4dD48L3N2Zz4='
+      ],
+      'lean': [
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMjQwIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YwZjhlYSIgcng9IjEyIi8+PHJlY3QgeT0iMTgwIiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjYzhhOTdhIi8+PHJlY3QgeT0iMTc4IiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjgiIGZpbGw9IiM4QjY5MTQiLz48cmVjdCB4PSI2MCIgeT0iODAiIHdpZHRoPSIyMiIgaGVpZ2h0PSIxMDAiIGZpbGw9IiM3YTUyMzAiIHJ4PSI1Ii8+PGVsbGlwc2UgY3g9IjcxIiBjeT0iNzIiIHJ4PSIzOCIgcnk9IjMyIiBmaWxsPSIjM2Q4YzI4IiBvcGFjaXR5PSIuOSIvPjx0ZXh0IHg9IjcxIiB5PSIyMjYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMyZTdkMzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+Qe+8muato+W4uDwvdGV4dD48ZyB0cmFuc2Zvcm09InJvdGF0ZSgyMCAyNDAgMTgwKSI+PHJlY3QgeD0iMjI4IiB5PSI3NSIgd2lkdGg9IjIyIiBoZWlnaHQ9IjEwNSIgZmlsbD0iIzdhNTIzMCIgcng9IjUiLz48ZWxsaXBzZSBjeD0iMjM5IiBjeT0iNjgiIHJ4PSIzOCIgcnk9IjMyIiBmaWxsPSIjM2Q4YzI4IiBvcGFjaXR5PSIuODUiLz48L2c+PGVsbGlwc2UgY3g9IjIyNSIgY3k9IjE4MCIgcng9IjI4IiByeT0iOSIgZmlsbD0iI2EwNzA0MCIgc3Ryb2tlPSIjYzYyODI4IiBzdHJva2Utd2lkdGg9IjIuNSIgc3Ryb2tlLWRhc2hhcnJheT0iNCwzIi8+PHRleHQgeD0iMjQwIiB5PSIyMjYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNjNjI4MjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+RO+8muWcsOmdouOBjOmahui1tzwvdGV4dD48cmVjdCB4PSIxMCIgeT0iMTkyIiB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQwIiBmaWxsPSJ3aGl0ZSIgcng9IjgiIG9wYWNpdHk9Ii44OCIvPjx0ZXh0IHg9IjE2MCIgeT0iMjA3IiBmb250LXNpemU9IjEyIiBmaWxsPSIjYzYyODI4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuWCvuOBi++8i+WcsOmdouOBruS6gOijguODu+mahui1tyDihpIgROWIpOWumjwvdGV4dD48dGV4dCB4PSIxNjAiIHk9IjIyNCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzFiNDAxMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuagueOBjOaKnOOBkeOBi+OBkeOBpuOBhOOCi+OCteOCpOODs+OBp+OBmTwvdGV4dD48L3N2Zz4='
+      ],
+      'crack': [
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMjQwIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YwZjhlYSIgcng9IjEyIi8+PHJlY3QgeT0iMTkwIiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjYzhhOTdhIi8+PHJlY3QgeT0iMTg4IiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjgiIGZpbGw9IiM4QjY5MTQiLz48cmVjdCB4PSIxMzAiIHk9IjQwIiB3aWR0aD0iNjAiIGhlaWdodD0iMTUwIiBmaWxsPSIjN2E1MjMwIiByeD0iMTAiLz48ZWxsaXBzZSBjeD0iMTYwIiBjeT0iMzUiIHJ4PSI1NSIgcnk9IjM4IiBmaWxsPSIjM2Q4YzI4IiBvcGFjaXR5PSIuOSIvPjxwb2x5bGluZSBwb2ludHM9IjE1OCw1NSAxNjIsOTAgMTU1LDEyMCAxNjMsMTYwIDE1OCwxODgiIHN0cm9rZT0iI2M2MjgyOCIgc3Ryb2tlLXdpZHRoPSI0IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48dGV4dCB4PSIyMDUiIHk9IjEwOCIgZm9udC1zaXplPSIxMyIgZmlsbD0iI2M2MjgyOCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7nuKbjga7kuoDoo4I8L3RleHQ+PHRleHQgeD0iMjA1IiB5PSIxMjQiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMxYjQwMTAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7pm6jmsLTkvrXlhaXihpLohZDmnL08L3RleHQ+PHJlY3QgeD0iMTAiIHk9IjIwMCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzNCIgZmlsbD0id2hpdGUiIHJ4PSI4IiBvcGFjaXR5PSIuODgiLz48dGV4dCB4PSIxNjAiIHk9IjIxNSIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2M2MjgyOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7mt7HjgY/lpKfjgY3jgYTkuoDoo4Ig4oaSIETliKTlrprvvIjlubnmipjjgozljbHpmbrvvIk8L3RleHQ+PHRleHQgeD0iMTYwIiB5PSIyMjkiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMxYjQwMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7mtYXjgYTkuoDoo4Ljga9D5Yik5a6aPC90ZXh0Pjwvc3ZnPg=='
+      ],
+      'fungusBody': [
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMjQwIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YwZjhlYSIgcng9IjEyIi8+PHJlY3QgeT0iMTk1IiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjQ1IiBmaWxsPSIjYzhhOTdhIi8+PHJlY3QgeT0iMTkzIiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjgiIGZpbGw9IiM4QjY5MTQiLz48cmVjdCB4PSIxMzAiIHk9IjQwIiB3aWR0aD0iNjAiIGhlaWdodD0iMTU1IiBmaWxsPSIjN2E1MjMwIiByeD0iMTAiLz48ZWxsaXBzZSBjeD0iMTYwIiBjeT0iMzUiIHJ4PSI1MiIgcnk9IjM2IiBmaWxsPSIjM2Q4YzI4IiBvcGFjaXR5PSIuOSIvPjxlbGxpcHNlIGN4PSIxMTIiIGN5PSIxNDgiIHJ4PSIzNCIgcnk9IjEzIiBmaWxsPSIjOEI0NTEzIi8+PGVsbGlwc2UgY3g9IjExMiIgY3k9IjEzOSIgcng9IjI5IiByeT0iMTAiIGZpbGw9IiNhMDUyMmQiLz48ZWxsaXBzZSBjeD0iMTEyIiBjeT0iMTMyIiByeD0iMjEiIHJ5PSI3IiBmaWxsPSIjY2Q4NTNmIi8+PHJlY3QgeD0iMTE5IiB5PSIxNDgiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxNSIgZmlsbD0iIzhCNDUxMyIgcng9IjIiLz48dGV4dCB4PSIxNCIgeT0iMTIwIiBmb250LXNpemU9IjEyIiBmaWxsPSIjYzYyODI4IiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuODmeODg+OCs+OCpuOCv+OCsTwvdGV4dD48dGV4dCB4PSIxNCIgeT0iMTM2IiBmb250LXNpemU9IjExIiBmaWxsPSIjMWI0MDEwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+6Iy26Imy44Gu5qOa54q244Kt44OO44KzPC90ZXh0Pjx0ZXh0IHg9IjE0IiB5PSIxNTIiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMxYjQwMTAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7ihpLlhoXpg6jjgYzohZDmnL3vvIE8L3RleHQ+PHJlY3QgeD0iMTAiIHk9IjIwNSIgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMCIgZmlsbD0id2hpdGUiIHJ4PSI4IiBvcGFjaXR5PSIuODgiLz48dGV4dCB4PSIxNjAiIHk9IjIyMCIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2M2MjgyOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7lvLflipvjgarjgq3jg47jgrPvvIjjg5njg4PjgrPjgqbjgr/jgrHnrYnvvIkg4oaSIETliKTlrpo8L3RleHQ+PHRleHQgeD0iMTYwIiB5PSIyMzIiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiMxYjQwMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7nqK7poZ7kuI3mmI7jgarjgq3jg47jgrPjgoIg4oaSIOacgOS9jkPliKTlrpo8L3RleHQ+PC9zdmc+'
+      ],
+      'cavity': [
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMjQwIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YwZjhlYSIgcng9IjEyIi8+PHRleHQgeD0iMTYwIiB5PSIyMCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzFiNDAxMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7lubnjga7mlq3pnaLlm7PvvIjkuIrjgYvjgonopovjgZ/lm7PvvIk8L3RleHQ+PGNpcmNsZSBjeD0iODAiIGN5PSIxMTAiIHI9IjU1IiBmaWxsPSIjN2E1MjMwIi8+PGNpcmNsZSBjeD0iODAiIGN5PSIxMTAiIHI9IjQwIiBmaWxsPSIjYTA1MjJkIi8+PGNpcmNsZSBjeD0iODAiIGN5PSIxMTAiIHI9IjIyIiBmaWxsPSIjOEI0NTEzIi8+PHRleHQgeD0iODAiIHk9IjE4MCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzJlN2QzMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj5B77ya56m65rSe44Gq44GXPC90ZXh0PjxjaXJjbGUgY3g9IjE2MCIgY3k9IjExMCIgcj0iNTUiIGZpbGw9IiM3YTUyMzAiLz48Y2lyY2xlIGN4PSIxNjAiIGN5PSIxMTAiIHI9IjQwIiBmaWxsPSIjYTA1MjJkIi8+PGNpcmNsZSBjeD0iMTYwIiBjeT0iMTEwIiByPSIyMiIgZmlsbD0iIzMzMyIvPjxwYXRoIGQ9Ik0xNjAsMTEwIEwxNjAsODUgQTI1LDI1IDAgMCwxIDE4MiwxMTggWiIgZmlsbD0iYmxhY2siIG9wYWNpdHk9Ii44Ii8+PHRleHQgeD0iMTYwIiB5PSIxODAiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNlNjUxMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+Q++8mjEvM+acqua6gDwvdGV4dD48Y2lyY2xlIGN4PSIyNDAiIGN5PSIxMTAiIHI9IjU1IiBmaWxsPSIjN2E1MjMwIi8+PGNpcmNsZSBjeD0iMjQwIiBjeT0iMTEwIiByPSI0MCIgZmlsbD0iI2EwNTIyZCIvPjxwYXRoIGQ9Ik0yNDAsMTEwIEwyNDAsNjggQTQ0LDQ0IDAgMCwxIDI4NCw5NSBaIiBmaWxsPSJibGFjayIgb3BhY2l0eT0iLjg1IiBzdHJva2U9IiNjNjI4MjgiIHN0cm9rZS13aWR0aD0iMiIvPjx0ZXh0IHg9IjI0MCIgeT0iMTgwIiBmb250LXNpemU9IjExIiBmaWxsPSIjYzYyODI4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPkTvvJoxLzPku6XkuIrvvIE8L3RleHQ+PHJlY3QgeD0iMTAiIHk9IjE5MyIgd2lkdGg9IjMwMCIgaGVpZ2h0PSI0MiIgZmlsbD0id2hpdGUiIHJ4PSI4IiBvcGFjaXR5PSIuODgiLz48dGV4dCB4PSIxNjAiIHk9IjIwOCIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2M2MjgyOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7nqbrmtJ7jgYzlubnlkajjga4xLzPku6XkuIog4oaSIETliKTlrpo8L3RleHQ+PHRleHQgeD0iMTYwIiB5PSIyMjYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMxYjQwMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7jgIwxMuaZguOAnTTmmYLjgI3jga7nr4Tlm7LjgafplovjgYTjgabjgYTjgozjgbAxLzM8L3RleHQ+PC9zdmc+'
+      ],
+      'bulge': [
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMjQwIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YwZjhlYSIgcng9IjEyIi8+PHJlY3QgeT0iMTkwIiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjYzhhOTdhIi8+PHJlY3QgeT0iMTg4IiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjgiIGZpbGw9IiM4QjY5MTQiLz48cmVjdCB4PSI1MCIgeT0iNzAiIHdpZHRoPSI0MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiM3YTUyMzAiIHJ4PSI4Ii8+PGVsbGlwc2UgY3g9IjcwIiBjeT0iNjIiIHJ4PSI0MiIgcnk9IjM0IiBmaWxsPSIjM2Q4YzI4IiBvcGFjaXR5PSIuOSIvPjx0ZXh0IHg9IjcwIiB5PSIyMTUiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMyZTdkMzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+Qe+8muato+W4uDwvdGV4dD48cmVjdCB4PSIyMTAiIHk9IjcwIiB3aWR0aD0iNDAiIGhlaWdodD0iMTIwIiBmaWxsPSIjN2E1MjMwIiByeD0iOCIvPjxlbGxpcHNlIGN4PSIyMzAiIGN5PSI2MiIgcng9IjQyIiByeT0iMzQiIGZpbGw9IiMzZDhjMjgiIG9wYWNpdHk9Ii45Ii8+PGVsbGlwc2UgY3g9IjIxOCIgY3k9IjEzMCIgcng9IjI4IiByeT0iMTgiIGZpbGw9IiM4QjY5MTQiIHN0cm9rZT0iI2EwNTIyZCIgc3Ryb2tlLXdpZHRoPSIyIi8+PGVsbGlwc2UgY3g9IjI0OCIgY3k9IjE0NSIgcng9IjIyIiByeT0iMTQiIGZpbGw9IiM3YTUyMzAiIHN0cm9rZT0iI2EwNTIyZCIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgeD0iMTA1IiB5PSIxMjYiIGZvbnQtc2l6ZT0iMTMiIGZpbGw9IiNjNjI4MjgiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+44GT44G254q244GuPC90ZXh0Pjx0ZXh0IHg9IjEwNSIgeT0iMTQyIiBmb250LXNpemU9IjEzIiBmaWxsPSIjYzYyODI4IiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPumahui1t++8gTwvdGV4dD48dGV4dCB4PSIyMzAiIHk9IjIxNSIgZm9udC1zaXplPSIxMSIgZmlsbD0iI2M2MjgyOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj5DL0TvvJrlhoXpg6jnlbDluLg8L3RleHQ+PHJlY3QgeD0iMTAiIHk9IjIwMCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzNCIgZmlsbD0id2hpdGUiIHJ4PSI4IiBvcGFjaXR5PSIuODgiLz48dGV4dCB4PSIxNjAiIHk9IjIxNSIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2M2MjgyOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7lubnjga7jgZPjgbbjg7vohqjjgowgPSDlhoXpg6johZDmnL3jga7jgrXjgqTjg7M8L3RleHQ+PHRleHQgeD0iMTYwIiB5PSIyMjkiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMxYjQwMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7lpKfjgY3jgYTpmobotbfjgoTmoLnlhYPjga7pmobotbcg4oaSIETliKTlrpo8L3RleHQ+PC9zdmc+'
+      ],
+      'decayExposed': [
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMjQwIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YwZjhlYSIgcng9IjEyIi8+PHJlY3QgeT0iMTk1IiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjQ1IiBmaWxsPSIjYzhhOTdhIi8+PHJlY3QgeT0iMTkzIiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjgiIGZpbGw9IiM4QjY5MTQiLz48cmVjdCB4PSIxMjAiIHk9IjMwIiB3aWR0aD0iODAiIGhlaWdodD0iMTY1IiBmaWxsPSIjN2E1MjMwIiByeD0iMTIiLz48ZWxsaXBzZSBjeD0iMTYwIiBjeT0iMjUiIHJ4PSI1OCIgcnk9IjM4IiBmaWxsPSIjM2Q4YzI4IiBvcGFjaXR5PSIuOSIvPjxyZWN0IHg9IjEyMCIgeT0iODAiIHdpZHRoPSI0MiIgaGVpZ2h0PSI3MiIgZmlsbD0iIzRhMzAwMCIgcng9IjQiIG9wYWNpdHk9Ii45MiIvPjxjaXJjbGUgY3g9IjEzMCIgY3k9Ijk2IiByPSI1IiBmaWxsPSIjMmExNTAwIiBvcGFjaXR5PSIuNyIvPjxjaXJjbGUgY3g9IjE0MiIgY3k9IjExMCIgcj0iNCIgZmlsbD0iIzJhMTUwMCIgb3BhY2l0eT0iLjciLz48Y2lyY2xlIGN4PSIxMjgiIGN5PSIxMjQiIHI9IjYiIGZpbGw9IiMyYTE1MDAiIG9wYWNpdHk9Ii43Ii8+PGNpcmNsZSBjeD0iMTQwIiBjeT0iMTM4IiByPSI0IiBmaWxsPSIjMmExNTAwIiBvcGFjaXR5PSIuNyIvPjx0ZXh0IHg9IjEwIiB5PSI5OCIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2M2MjgyOCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7ohZDmnL3pg6jpnLLlh7o8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjExNCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzFiNDAxMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuODnOODreODnOODreODu+m7kuOBmuOCgDwvdGV4dD48dGV4dCB4PSIxMCIgeT0iMTI4IiBmb250LXNpemU9IjExIiBmaWxsPSIjMWI0MDEwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+44K544Od44Oz44K454q2PC90ZXh0PjxsaW5lIHgxPSIxMjAiIHkxPSIxNzIiIHgyPSIxNjIiIHkyPSIxNzIiIHN0cm9rZT0iI2U2NTEwMCIgc3Ryb2tlLXdpZHRoPSIzIi8+PHRleHQgeD0iMTQxIiB5PSIxNjgiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiNlNjUxMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7ohZDmnL3luYU8L3RleHQ+PGxpbmUgeDE9IjEyMCIgeTE9IjE4MCIgeDI9IjIwMCIgeTI9IjE4MCIgc3Ryb2tlPSIjODg4IiBzdHJva2Utd2lkdGg9IjIiLz48dGV4dCB4PSIxNjAiIHk9IjE4OCIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzg4OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuW5ueWRqDwvdGV4dD48cmVjdCB4PSIxMCIgeT0iMjA1IiB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwIiBmaWxsPSJ3aGl0ZSIgcng9IjgiIG9wYWNpdHk9Ii44OCIvPjx0ZXh0IHg9IjE2MCIgeT0iMjIwIiBmb250LXNpemU9IjEyIiBmaWxsPSIjYzYyODI4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuiFkOacvemDqOOBjOW5ueWRqOOBrjEvM+S7peS4iiDihpIgROWIpOWumjwvdGV4dD48dGV4dCB4PSIxNjAiIHk9IjIzMiIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzFiNDAxMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuinpuOCi+OBqOOChOOCj+OCieOBi+OBj+ODnOODreODnOODreOBjOebruWuiTwvdGV4dD48L3N2Zz4='
+      ],
+      'barkDamage': [
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMjQwIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YwZjhlYSIgcng9IjEyIi8+PHJlY3QgeT0iMTk1IiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjQ1IiBmaWxsPSIjYzhhOTdhIi8+PHJlY3QgeT0iMTkzIiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjgiIGZpbGw9IiM4QjY5MTQiLz48cmVjdCB4PSIxMjAiIHk9IjMwIiB3aWR0aD0iODAiIGhlaWdodD0iMTY1IiBmaWxsPSIjN2E1MjMwIiByeD0iMTIiLz48ZWxsaXBzZSBjeD0iMTYwIiBjeT0iMjUiIHJ4PSI1NSIgcnk9IjM2IiBmaWxsPSIjM2Q4YzI4IiBvcGFjaXR5PSIuOSIvPjxwYXRoIGQ9Ik0xMjAsMzAgUTExNiw2MCAxMjAsMTAwIFExMjIsMTMwIDEyNSwxNTAgUTEyOCwxNjIgMTIwLDE5NSBMMTIwLDMwWiIgZmlsbD0iIzQ0NCIgb3BhY2l0eT0iLjg3Ii8+PGxpbmUgeDE9IjEwNCIgeTE9IjE3MiIgeDI9IjE0MiIgeTI9IjE3MiIgc3Ryb2tlPSIjZTY1MTAwIiBzdHJva2Utd2lkdGg9IjMiLz48dGV4dCB4PSIxMjMiIHk9IjE2NyIgZm9udC1zaXplPSIxMCIgZmlsbD0iI2U2NTEwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7ml6/mrbvpg6g8L3RleHQ+PGxpbmUgeDE9IjEyMCIgeTE9IjE4MCIgeDI9IjIwMCIgeTI9IjE4MCIgc3Ryb2tlPSIjODg4IiBzdHJva2Utd2lkdGg9IjIiLz48dGV4dCB4PSIxNjAiIHk9IjE4OCIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzg4OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuW5ueWRqOOBlumVt+OBlTwvdGV4dD48dGV4dCB4PSIyMjgiIHk9IjgyIiBmb250LXNpemU9IjEyIiBmaWxsPSIjYzYyODI4IiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuaoueearuOBjDwvdGV4dD48dGV4dCB4PSIyMjgiIHk9Ijk3IiBmb250LXNpemU9IjEyIiBmaWxsPSIjYzYyODI4IiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuaer+OCjOOBpjwvdGV4dD48dGV4dCB4PSIyMjgiIHk9IjExMiIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2M2MjgyOCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7liaXjgYzjgozjgos8L3RleHQ+PHJlY3QgeD0iMTAiIHk9IjIwNSIgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMCIgZmlsbD0id2hpdGUiIHJ4PSI4IiBvcGFjaXR5PSIuODgiLz48dGV4dCB4PSIxNjAiIHk9IjIyMCIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2U2NTEwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7ml6/mrbvpg6jjgYzlubnlkajjga4xLzPmnKrmuoDihpJCIC8gMS8z5Lul5LiK4oaSQzwvdGV4dD48dGV4dCB4PSIxNjAiIHk9IjIzMiIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzFiNDAxMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuS4gOWRqOWJpeOBjOOCjOOCi+OBqOacqOOBr+aer+atu+OBl+OBvuOBmTwvdGV4dD48L3N2Zz4='
+      ],
+      'jointAbnormality': [
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMjQwIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YwZjhlYSIgcng9IjEyIi8+PHJlY3QgeT0iMTk1IiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjQ1IiBmaWxsPSIjYzhhOTdhIi8+PHJlY3QgeT0iMTkzIiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjgiIGZpbGw9IiM4QjY5MTQiLz48dGV4dCB4PSI4MCIgeT0iMjQiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiMyZTdkMzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+VeWtl+WPiO+8iOWuieWFqO+8iTwvdGV4dD48cmVjdCB4PSI2OCIgeT0iOTAiIHdpZHRoPSIyNCIgaGVpZ2h0PSIxMDUiIGZpbGw9IiM3YTUyMzAiIHJ4PSI2Ii8+PHBhdGggZD0iTTgwLDkwIFE1NSw3MCA0NSw0MCIgc3Ryb2tlPSIjN2E1MjMwIiBzdHJva2Utd2lkdGg9IjIwIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNODAsOTAgUTEwNSw3MCAxMTUsNDAiIHN0cm9rZT0iIzdhNTIzMCIgc3Ryb2tlLXdpZHRoPSIyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGVsbGlwc2UgY3g9IjQ1IiBjeT0iMzQiIHJ4PSIyNCIgcnk9IjE4IiBmaWxsPSIjM2Q4YzI4IiBvcGFjaXR5PSIuOSIvPjxlbGxpcHNlIGN4PSIxMTUiIGN5PSIzNCIgcng9IjI0IiByeT0iMTgiIGZpbGw9IiMzZDhjMjgiIG9wYWNpdHk9Ii45Ii8+PHRleHQgeD0iODAiIHk9IjIyMCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzJlN2QzMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuW6g+OBhFXlrZcgPSDkuIjlpKs8L3RleHQ+PHRleHQgeD0iMjQwIiB5PSIyNCIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2M2MjgyOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj5W5a2X5Y+I77yI5Y2x6Zm677yJPC90ZXh0PjxyZWN0IHg9IjIyOCIgeT0iMTAwIiB3aWR0aD0iMjQiIGhlaWdodD0iOTUiIGZpbGw9IiM3YTUyMzAiIHJ4PSI2Ii8+PHBhdGggZD0iTTI0MCwxMDAgUTIyOCw4MCAyMTUsNDUiIHN0cm9rZT0iIzdhNTIzMCIgc3Ryb2tlLXdpZHRoPSIxOCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTI0MCwxMDAgUTI1Miw4MCAyNjUsNDUiIHN0cm9rZT0iIzdhNTIzMCIgc3Ryb2tlLXdpZHRoPSIxOCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIzMywxMDIgTDI0NywxMDIgTDI0MCw4MCBaIiBmaWxsPSIjZTY1MTAwIiBvcGFjaXR5PSIuODgiIHN0cm9rZT0iI2M2MjgyOCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48ZWxsaXBzZSBjeD0iMjE1IiBjeT0iMzgiIHJ4PSIyMiIgcnk9IjE3IiBmaWxsPSIjM2Q4YzI4IiBvcGFjaXR5PSIuOSIvPjxlbGxpcHNlIGN4PSIyNjUiIGN5PSIzOCIgcng9IjIyIiByeT0iMTciIGZpbGw9IiMzZDhjMjgiIG9wYWNpdHk9Ii45Ii8+PHRleHQgeD0iMjQwIiB5PSIyMjAiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNjNjI4MjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj5W5a2XID0g6KOC44GR44KE44GZ44GE77yBPC90ZXh0Pjx0ZXh0IHg9IjI1NyIgeT0iMTA4IiBmb250LXNpemU9IjEwIiBmaWxsPSIjZTY1MTAwIiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuWFpeOCiuearjwvdGV4dD48cmVjdCB4PSIxMCIgeT0iMjAwIiB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMyIiBmaWxsPSJ3aGl0ZSIgcng9IjgiIG9wYWNpdHk9Ii44OCIvPjx0ZXh0IHg9IjE2MCIgeT0iMjE1IiBmb250LXNpemU9IjEyIiBmaWxsPSIjYzYyODI4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPlblrZfjga7lj4jvvIvlhaXjgornmq4g4oaSIOW8t+miqOOBp+ijguOBkeOChOOBmeOBhDwvdGV4dD48dGV4dCB4PSIxNjAiIHk9IjIyOSIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzFiNDAxMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuWkp+OBjeOBquWkieeKtuOBr0TliKTlrpo8L3RleHQ+PC9zdmc+'
+      ],
+      'pestDamage': [
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMjQwIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YwZjhlYSIgcng9IjEyIi8+PHJlY3QgeT0iMTk1IiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjQ1IiBmaWxsPSIjYzhhOTdhIi8+PHJlY3QgeT0iMTkzIiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjgiIGZpbGw9IiM4QjY5MTQiLz48cmVjdCB4PSIxMjAiIHk9IjMwIiB3aWR0aD0iODAiIGhlaWdodD0iMTY1IiBmaWxsPSIjN2E1MjMwIiByeD0iMTIiLz48ZWxsaXBzZSBjeD0iMTYwIiBjeT0iMjUiIHJ4PSI1NSIgcnk9IjM2IiBmaWxsPSIjM2Q4YzI4IiBvcGFjaXR5PSIuOSIvPjxjaXJjbGUgY3g9IjE0NSIgY3k9IjgwIiByPSI1IiBmaWxsPSJibGFjayIgb3BhY2l0eT0iLjg4Ii8+PGNpcmNsZSBjeD0iMTU1IiBjeT0iMTEwIiByPSI0IiBmaWxsPSJibGFjayIgb3BhY2l0eT0iLjg4Ii8+PGNpcmNsZSBjeD0iMTQ4IiBjeT0iMTM1IiByPSI1IiBmaWxsPSJibGFjayIgb3BhY2l0eT0iLjg4Ii8+PGNpcmNsZSBjeD0iMTYyIiBjeT0iOTUiIHI9IjQiIGZpbGw9ImJsYWNrIiBvcGFjaXR5PSIuODgiLz48ZWxsaXBzZSBjeD0iMTQyIiBjeT0iODgiIHJ4PSI5IiByeT0iNCIgZmlsbD0iI2Q0YTQ2MCIgdHJhbnNmb3JtPSJyb3RhdGUoLTIwIDE0MiA4OCkiLz48ZWxsaXBzZSBjeD0iMTUyIiBjeT0iMTE4IiByeD0iOCIgcnk9IjMiIGZpbGw9IiNkNGE0NjAiIHRyYW5zZm9ybT0icm90YXRlKDE1IDE1MiAxMTgpIi8+PGVsbGlwc2UgY3g9IjE0NSIgY3k9IjE0NCIgcng9IjEwIiByeT0iNCIgZmlsbD0iI2Q0YTQ2MCIgdHJhbnNmb3JtPSJyb3RhdGUoLTEwIDE0NSAxNDQpIi8+PHRleHQgeD0iMjMyIiB5PSI3NCIgZm9udC1zaXplPSIxMiIgZmlsbD0iYmxhY2siIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+56m044GM44GC44KLPC90ZXh0Pjx0ZXh0IHg9IjIzMiIgeT0iMTEyIiBmb250LXNpemU9IjEyIiBmaWxsPSIjZTY1MTAwIiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuOCquOCrOOCr+OCuueKtjwvdGV4dD48dGV4dCB4PSIyMzIiIHk9IjEyNiIgZm9udC1zaXplPSIxMSIgZmlsbD0iI2U2NTEwMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuOBruiZq+eznu+8iOODleODqeOCue+8iTwvdGV4dD48cmVjdCB4PSIxMCIgeT0iMjA1IiB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwIiBmaWxsPSJ3aGl0ZSIgcng9IjgiIG9wYWNpdHk9Ii44OCIvPjx0ZXh0IHg9IjE2MCIgeT0iMjIwIiBmb250LXNpemU9IjEyIiBmaWxsPSIjYzYyODI4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPueptO+8i+ODleODqeOCuSA9IOepv+WtlOWus+iZq+OBruiovOaLoDwvdGV4dD48dGV4dCB4PSIxNjAiIHk9IjIzMiIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzFiNDAxMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPum6uueKtuODleODqeOCueKGkuOCr+ODk+OCouOCq+OCq+ODn+OCreODqu+8iOimgemAmuWgse+8ge+8iTwvdGV4dD48L3N2Zz4='
+      ],
+      'rootVisible': [
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMjQwIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YwZjhlYSIgcng9IjEyIi8+PHJlY3QgeT0iMTY1IiB3aWR0aD0iMzIwIiBoZWlnaHQ9Ijc1IiBmaWxsPSIjYzhhOTdhIi8+PHJlY3QgeT0iMTYzIiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjgiIGZpbGw9IiM4QjY5MTQiLz48cmVjdCB4PSI1OCIgeT0iNTUiIHdpZHRoPSIyOCIgaGVpZ2h0PSIxMTAiIGZpbGw9IiM3YTUyMzAiIHJ4PSI2Ii8+PHBhdGggZD0iTTU4LDE1NSBRNDIsMTY1IDMwLDE3MCBRNDIsMTY4IDQyLDE2MyBRNTAsMTU4IDU4LDE1NVoiIGZpbGw9IiM3YTUyMzAiLz48cGF0aCBkPSJNODYsMTU1IFExMDIsMTY1IDExNCwxNzAgUTEwMiwxNjggMTAyLDE2MyBROTQsMTU4IDg2LDE1NVoiIGZpbGw9IiM3YTUyMzAiLz48cGF0aCBkPSJNNTgsMTY1IFE0NSwxNzIgMzYsMTc1IiBzdHJva2U9IiM3YTUyMzAiIHN0cm9rZS13aWR0aD0iNiIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTg2LDE2NSBROTksMTcyIDEwOCwxNzUiIHN0cm9rZT0iIzdhNTIzMCIgc3Ryb2tlLXdpZHRoPSI2IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48ZWxsaXBzZSBjeD0iNzIiIGN5PSI0NSIgcng9IjQyIiByeT0iMzIiIGZpbGw9IiMzZDhjMjgiIG9wYWNpdHk9Ii45Ii8+PHRleHQgeD0iNzIiIHk9IjIyIiBmb250LXNpemU9IjExIiBmaWxsPSIjMmU3ZDMyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuagueW8teOCiuOBjOimi+OBiOOCizwvdGV4dD48dGV4dCB4PSI3MiIgeT0iMTkyIiBmb250LXNpemU9IjExIiBmaWxsPSIjMmU3ZDMyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+44Ov44Kk44Oz44Kw44Op44K55Z6LID0gQeWIpOWumjwvdGV4dD48cmVjdCB4PSIyMTUiIHk9IjU1IiB3aWR0aD0iMjgiIGhlaWdodD0iMTIwIiBmaWxsPSIjN2E1MjMwIiByeD0iNiIvPjxyZWN0IHg9IjE5NSIgeT0iMTQ1IiB3aWR0aD0iNzAiIGhlaWdodD0iMjUiIGZpbGw9IiNhMDcwNDAiIHJ4PSI0Ii8+PGVsbGlwc2UgY3g9IjIyOSIgY3k9IjE0NSIgcng9IjM1IiByeT0iOCIgZmlsbD0iI2IwODA1MCIvPjxlbGxpcHNlIGN4PSIyMjkiIGN5PSI0NSIgcng9IjQyIiByeT0iMzIiIGZpbGw9IiMzZDhjMjgiIG9wYWNpdHk9Ii45Ii8+PHRleHQgeD0iMjI5IiB5PSIyMiIgZm9udC1zaXplPSIxMSIgZmlsbD0iI2M2MjgyOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7moLnlvLXjgorjgYzopovjgYjjgarjgYQ8L3RleHQ+PHRleHQgeD0iMjI5IiB5PSIxOTIiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNjNjI4MjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7pm7vmn7HlnosgPSBD5Yik5a6aPC90ZXh0PjxyZWN0IHg9IjEwIiB5PSIyMDciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjgiIGZpbGw9IndoaXRlIiByeD0iOCIgb3BhY2l0eT0iLjg4Ii8+PHRleHQgeD0iMTYwIiB5PSIyMjQiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMxYjQwMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7moLnlvLXjgorjgYzopovjgYjjgarjgYQ95rex5qSN44GI44O75qC56IWQ44KM44Gq44GpPC90ZXh0Pjwvc3ZnPg=='
+      ],
+      'tappingSound': [
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMjQwIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YwZjhlYSIgcng9IjEyIi8+PHJlY3QgeT0iMTk1IiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjQ1IiBmaWxsPSIjYzhhOTdhIi8+PHJlY3QgeT0iMTkzIiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjgiIGZpbGw9IiM4QjY5MTQiLz48cmVjdCB4PSI0MCIgeT0iNTAiIHdpZHRoPSI1MCIgaGVpZ2h0PSIxNDUiIGZpbGw9IiM3YTUyMzAiIHJ4PSIxMCIvPjxlbGxpcHNlIGN4PSI2NSIgY3k9IjQyIiByeD0iMzgiIHJ5PSIzMCIgZmlsbD0iIzNkOGMyOCIgb3BhY2l0eT0iLjkiLz48cmVjdCB4PSIyMCIgeT0iMTAwIiB3aWR0aD0iMzAiIGhlaWdodD0iMTIiIGZpbGw9IiM0NDQiIHJ4PSIzIiB0cmFuc2Zvcm09InJvdGF0ZSgtMjAgMzUgMTA2KSIvPjxyZWN0IHg9IjI4IiB5PSI5NSIgd2lkdGg9IjgiIGhlaWdodD0iMjIiIGZpbGw9IiM4ODgiIHJ4PSIyIiB0cmFuc2Zvcm09InJvdGF0ZSgtMjAgMzIgMTA2KSIvPjxwYXRoIGQ9Ik05NSwxMDAgUTExMCw5NSAxMDUsMTEyIFExMDAsMTI3IDExNywxMjAiIHN0cm9rZT0iIzJlN2QzMiIgc3Ryb2tlLXdpZHRoPSIyLjUiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNOTUsMTEzIFExMTcsMTA1IDExMiwxMjIgUTEwNywxNDAgMTI4LDEzMiIgc3Ryb2tlPSIjMmU3ZDMyIiBzdHJva2Utd2lkdGg9IjIuNSIgZmlsbD0ibm9uZSIvPjx0ZXh0IHg9IjY1IiB5PSIyMTUiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiMyZTdkMzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+44Kz44Oz44Kz44OzIOKGkiBB5q2j5bi4PC90ZXh0PjxyZWN0IHg9IjE4NSIgeT0iNTAiIHdpZHRoPSI1MCIgaGVpZ2h0PSIxNDUiIGZpbGw9IiM3YTUyMzAiIHJ4PSIxMCIvPjxlbGxpcHNlIGN4PSIyMTAiIGN5PSIxMjAiIHJ4PSIxOCIgcnk9IjMyIiBmaWxsPSIjMmExNTAwIiBvcGFjaXR5PSIuODgiLz48ZWxsaXBzZSBjeD0iMjEwIiBjeT0iNDIiIHJ4PSIzOCIgcnk9IjMwIiBmaWxsPSIjM2Q4YzI4IiBvcGFjaXR5PSIuOSIvPjxyZWN0IHg9IjI3MCIgeT0iMTAwIiB3aWR0aD0iMzAiIGhlaWdodD0iMTIiIGZpbGw9IiM0NDQiIHJ4PSIzIiB0cmFuc2Zvcm09InJvdGF0ZSgyMCAyODUgMTA2KSIvPjxyZWN0IHg9IjI4MiIgeT0iOTUiIHdpZHRoPSI4IiBoZWlnaHQ9IjIyIiBmaWxsPSIjODg4IiByeD0iMiIgdHJhbnNmb3JtPSJyb3RhdGUoMjAgMjg2IDEwNikiLz48cGF0aCBkPSJNMjM1LDEwMCBRMjUyLDkwIDI0NywxMTAgUTI0MiwxMjggMjYwLDExNiIgc3Ryb2tlPSIjYzYyODI4IiBzdHJva2Utd2lkdGg9IjIuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlLWRhc2hhcnJheT0iNSwzIi8+PHBhdGggZD0iTTIzNSwxMTQgUTI1NywxMDMgMjUyLDEyMyBRMjQ3LDE0MyAyNjgsMTI5IiBzdHJva2U9IiNjNjI4MjgiIHN0cm9rZS13aWR0aD0iMi41IiBmaWxsPSJub25lIiBzdHJva2UtZGFzaGFycmF5PSI1LDMiLz48dGV4dCB4PSIyMTAiIHk9IjIxNSIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2M2MjgyOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7jg53jgrPjg53jgrMg4oaSIOWGhemDqOiFkOacvTwvdGV4dD48cmVjdCB4PSIxMCIgeT0iMjAwIiB3aWR0aD0iMzAwIiBoZWlnaHQ9IjM0IiBmaWxsPSJ3aGl0ZSIgcng9IjgiIG9wYWNpdHk9Ii44OCIvPjx0ZXh0IHg9IjE2MCIgeT0iMjE1IiBmb250LXNpemU9IjEyIiBmaWxsPSIjMWI0MDEwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuOCueOCpOOCq+OCkuWPqeOBj+imgemgmOOBp+mfs+OBrumBleOBhOOCkuiBnuOBk+OBhjwvdGV4dD48dGV4dCB4PSIxNjAiIHk9IjIyOSIgZm9udC1zaXplPSIxMSIgZmlsbD0iI2M2MjgyOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuW6g+evhOWbsuOBp+mfs+OBjOWkieOCj+OCiyDihpIgROWIpOWumjwvdGV4dD48L3N2Zz4='
+      ],
+      'penetrationAbnormality': [
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMjQwIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YwZjhlYSIgcng9IjEyIi8+PHJlY3QgeT0iMTY1IiB3aWR0aD0iMzIwIiBoZWlnaHQ9Ijc1IiBmaWxsPSIjYzhhOTdhIi8+PHJlY3QgeT0iMTYzIiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjgiIGZpbGw9IiM4QjY5MTQiLz48dGV4dCB4PSIxNjAiIHk9IjIyIiBmb250LXNpemU9IjEyIiBmaWxsPSIjMWI0MDEwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuWcsOmam++8iOWcsOmdouOBmeOCjOOBmeOCjO+8ieOBruagueOCkuaknOafuzwvdGV4dD48cmVjdCB4PSI1MCIgeT0iNTAiIHdpZHRoPSIyOCIgaGVpZ2h0PSIxMTUiIGZpbGw9IiM3YTUyMzAiIHJ4PSI2Ii8+PGVsbGlwc2UgY3g9IjY0IiBjeT0iMTYyIiByeD0iMzAiIHJ5PSIxMiIgZmlsbD0iIzdhNTIzMCIgb3BhY2l0eT0iLjgiLz48cGF0aCBkPSJNNTAsMTYwIFEzMCwxNjggMjAsMTc1IiBzdHJva2U9IiM3YTUyMzAiIHN0cm9rZS13aWR0aD0iNyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTc4LDE2MCBROTgsMTY4IDEwOCwxNzUiIHN0cm9rZT0iIzdhNTIzMCIgc3Ryb2tlLXdpZHRoPSI3IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48bGluZSB4MT0iMzUiIHkxPSIxNDgiIHgyPSI1MCIgeTI9IjE1NyIgc3Ryb2tlPSIjODg4IiBzdHJva2Utd2lkdGg9IjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjx0ZXh0IHg9IjE0IiB5PSIxNDAiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiM4ODgiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7mo5LjgYw8L3RleHQ+PHRleHQgeD0iMTQiIHk9IjE1NCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzg4OCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7lhrLmraLpgZPjgafjgZnvvIzmraLjgbbjgYTjgovjgYvljbPoh7PmnaXml6blj4vovInml6XnrYnljIXlkKvjgIHlnKjpp4bjga7lvIDlj5bpopflvaLjgafmmKDlhYjntKflkIjjgZfjgabjgY3jgaDjgZXjgYTjgII8L3RleHQ+PC9zdmc+'
+      ],
+      'hangingBranch': [
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMjQwIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YwZjhlYSIgcng9IjEyIi8+PHJlY3QgeT0iMjA1IiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjM1IiBmaWxsPSIjYzhhOTdhIi8+PHJlY3QgeT0iMjAzIiB3aWR0aD0iMzIwIiBoZWlnaHQ9IjgiIGZpbGw9IiM4QjY5MTQiLz48cmVjdCB4PSIxNDAiIHk9IjE1IiB3aWR0aD0iNDAiIGhlaWdodD0iMTkwIiBmaWxsPSIjN2E1MjMwIiByeD0iMTAiLz48ZWxsaXBzZSBjeD0iMTYwIiBjeT0iMTIiIHJ4PSI3NSIgcnk9IjU1IiBmaWxsPSIjM2Q4YzI4IiBvcGFjaXR5PSIuODUiLz48ZWxsaXBzZSBjeD0iMTQwIiBjeT0iMjAiIHJ4PSI1NSIgcnk9IjQwIiBmaWxsPSIjNWFiMDQwIiBvcGFjaXR5PSIuNyIvPjxwYXRoIGQ9Ik0xNDAsNjAgUTEwMCw1NSA3MCw1MCIgc3Ryb2tlPSIjN2E1MjMwIiBzdHJva2Utd2lkdGg9IjE0IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48ZWxsaXBzZSBjeD0iNjgiIGN5PSI0OCIgcng9IjIyIiByeT0iMTgiIGZpbGw9IiMzZDhjMjgiIG9wYWNpdHk9Ii45Ii8+PHBhdGggZD0iTTE4MCw4MCBRMjE1LDc1IDIzOCw3MiIgc3Ryb2tlPSIjN2E1MjMwIiBzdHJva2Utd2lkdGg9IjEyIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSIyMTUiIGN5PSI3NCIgcj0iNyIgZmlsbD0iI2M2MjgyOCIgb3BhY2l0eT0iLjkiLz48cGF0aCBkPSJNMjE1LDc0IFEyMTAsMTAyIDIxOCwxMzIgUTIyMiwxNTIgMjEyLDE3MiIgc3Ryb2tlPSIjYTA1MjJkIiBzdHJva2Utd2lkdGg9IjgiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWRhc2hhcnJheT0iNiwzIi8+PGVsbGlwc2UgY3g9IjIxMyIgY3k9IjE3NSIgcng9IjE2IiByeT0iMTIiIGZpbGw9IiM4QjQ1MTMiIG9wYWNpdHk9Ii44Ii8+PGVsbGlwc2UgY3g9IjIxMyIgY3k9IjE3MCIgcng9IjE4IiByeT0iMTIiIGZpbGw9IiM3YWFhNTAiIG9wYWNpdHk9Ii43Ii8+PHRleHQgeD0iMjMzIiB5PSIxNTUiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiNjNjI4MjgiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+6JC95LiLPC90ZXh0Pjx0ZXh0IHg9IjIzMyIgeT0iMTcwIiBmb250LXNpemU9IjEyIiBmaWxsPSIjYzYyODI4IiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuWNsemZuu+8gTwvdGV4dD48dGV4dCB4PSIyMTciIHk9IjY1IiBmb250LXNpemU9IjExIiBmaWxsPSIjYzYyODI4IiBmb250LXdlaWdodD0iYm9sZCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPuaKmOOCjOebrjwvdGV4dD48Y2lyY2xlIGN4PSIyMjAiIGN5PSIxOTciIHI9IjgiIGZpbGw9IiMxNTY1YzAiIG9wYWNpdHk9Ii43Ii8+PGxpbmUgeDE9IjIyMCIgeTE9IjIwNSIgeDI9IjIyMCIgeTI9IjIxNiIgc3Ryb2tlPSIjMTU2NWMwIiBzdHJva2Utd2lkdGg9IjMiLz48bGluZSB4MT0iMjE1IiB5MT0iMjA5IiB4Mj0iMjI1IiB5Mj0iMjA5IiBzdHJva2U9IiMxNTY1YzAiIHN0cm9rZS13aWR0aD0iMi41Ii8+PHJlY3QgeD0iMTAiIHk9IjIwOCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMCIgZmlsbD0id2hpdGUiIHJ4PSI4IiBvcGFjaXR5PSIuODgiLz48dGV4dCB4PSIxNjAiIHk9IjIyMiIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2M2MjgyOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7lpKfjgY3jgYTjgbbjgonkuIvjgYzjgormnp0g4oaSIEPliKTlrprjg7vnq4vlhaXliLbpmZDjgpI8L3RleHQ+PHRleHQgeD0iMTYwIiB5PSIyMzQiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMxYjQwMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj7jgo/jgZrjgYvjgarpoqjjgafjgoLokL3kuIvjgZfjgb7jgZk8L3RleHQ+PC9zdmc+'
+      ]
+    };
+
+    // ─── 項目データ（健全度） ───
+    const HEALTH_ITEMS = [
+      { id: 'sway', name: `${R('揺', 'ゆ')}らぎ（${R('根元', 'ねもと')}の${R('安定性', 'あんていせい')}）`, nameExcel: '揺らぎ', grades: ['A', 'B', 'C', 'D'], desc: ['なし', '（空欄）', '少し揺れる', '根元がぐらぐら'], off: { B: true } },
+      { id: 'lean', name: `${R('不自然', 'ふしぜん')}な${R('傾斜', 'けいしゃ')}`, nameExcel: '不自然な傾斜', grades: ['A', 'B', 'C', 'D'], desc: ['なし・自然', '傾き・根は安定', '（空欄）', '傾き＋地面に亀裂'], off: { C: true } },
+      { id: 'crack', name: `${R('亀裂', 'きれつ')}（${R('幹', 'みき')}のひび${R('割', 'わ')}れ）`, nameExcel: '亀裂', grades: ['A', 'B', 'C', 'D'], desc: ['なし', '（空欄）', '小さい亀裂', '大きな亀裂'], off: { B: true } },
+      { id: 'fungusBody', name: `${R('子実体', 'しじったい')}（キノコの${R('発生', 'はっせい')}）`, nameExcel: '子実体(キノコ)', grades: ['A', 'B', 'C', 'D'], desc: ['なし', '（空欄）', 'キノコあり', '強力なキノコあり'], off: { B: true } },
+      { id: 'cavity', name: `${R('開口空洞', 'かいこうくうどう')}（${R('幹', 'みき')}の${R('穴', 'あな')}）`, nameExcel: '開口空洞', grades: ['A', 'B', 'C', 'D'], desc: ['なし', '芯に達しない', '芯達・1/3未満', '芯達・1/3以上'] },
+      { id: 'bulge', name: `${R('隆起', 'りゅうき')}（こぶ${R('状', 'じょう')}の${R('膨', 'ふく')}れ）`, nameExcel: '隆起', grades: ['A', 'B', 'C', 'D'], desc: ['なし', '（空欄）', '小さい隆起', '大きな隆起'], off: { B: true } },
+      { id: 'decayExposed', name: `${R('腐朽部露出', 'ふきゅうぶろしゅつ')}（${R('腐', 'くさ')}った${R('部分', 'ぶぶん')}）`, nameExcel: '腐朽部露出', grades: ['A', 'B', 'C', 'D'], desc: ['なし', '（空欄）', '1/3未満', '1/3以上'], off: { B: true } },
+      { id: 'barkDamage', name: `${R('樹皮枯死', 'じゅひこし')}・${R('欠損', 'けっそん')}`, nameExcel: '樹皮枯死・欠損', grades: ['A', 'B', 'C', 'D'], desc: ['なし', '1/3未満', '1/3以上', '（空欄）'], off: { D: true } },
+      { id: 'jointAbnormality', name: `${R('結合部', 'けつごうぶ')}の${R('変状', 'へんじょう')}（${R('枝', 'えだ')}の${R('又', 'また')}）`, nameExcel: '結合部の変状', grades: ['A', 'B', 'C', 'D'], desc: ['なし', '（空欄）', '小さい変状', '大きな変状'], off: { B: true } },
+      { id: 'pestDamage', name: `${R('穿孔害虫', 'せんこうがいちゅう')}（${R('幹', 'みき')}を${R('食', 'た')}べる${R('虫', 'むし')}）`, nameExcel: '穿孔害虫等', grades: ['A', 'B', 'C', 'D'], desc: ['なし', '小さい被害', '枯損の兆候', '（空欄）'], off: { D: true } },
+      { id: 'rootVisible', name: `${R('根張', 'ねば')}り（ルートカラー）`, nameExcel: '根張り', grades: ['A', 'B', 'C', 'D'], desc: ['見える', '（空欄）', '見えない', '（空欄）'], off: { B: true, D: true } },
+      { id: 'tappingSound', name: `${R('打診音異常', 'だしんおんいじょう')}（${R('叩', 'たた')}いた${R('音', 'おと')}）`, nameExcel: '打診音異常', grades: ['A', 'B', 'C', 'D'], desc: ['なし', '（空欄）', '一部で異常', '広範囲で異常'], off: { B: true } },
+      { id: 'penetrationAbnormality', name: `${R('貫入異常', 'かんにゅういじょう')}（${R('根', 'ね')}の${R('腐朽', 'ふきゅう')}${R('検査', 'けんさ')}）`, nameExcel: '貫入異常', grades: ['A', 'B', 'C', 'D'], desc: ['なし', '（空欄）', '一部で異常', '広範囲の腐朽'], off: { B: true } },
+      { id: 'hangingBranch', name: `ぶら${R('下', 'さ')}がり${R('枝', 'えだ')}`, nameExcel: 'ぶら下がり枝', grades: ['A', 'B', 'C', 'D'], desc: ['なし', '小さいものあり', '大きいものあり', '（空欄）'], off: { D: true } },
+    ];
+
+    // ─── ヘルプテキスト ───
+    const HEALTH_HELP = {
+      sway: { title: `${R('揺', 'ゆ')}らぎ（${R('根元', 'ねもと')}の${R('安定性', 'あんていせい')}）`, summary: `${R('木', 'き')}を少し${R('押', 'お')}したときの${R('根元', 'ねもと')}の${R('安定性', 'あんていせい')}を${R('評価', 'ひょうか')}。${R('枝', 'えだ')}が${R('揺', 'ゆ')}れるのは${R('正常', 'せいじょう')}、${R('根元', 'ねもと')}${R('自体', 'じたい')}が${R('動', 'うご')}くのは${R('異常', 'いじょう')}！`, check: `${R('体重', 'たいじゅう')}をかけて${R('幹', 'みき')}を${R('押', 'お')}してみよう。${R('根元', 'ねもと')}が${R('動', 'うご')}くか、${R('根', 'ね')}の${R('周', 'まわ')}りの${R('土', 'つち')}に${R('割', 'わ')}れ${R('目', 'め')}がないか${R('確認', 'かくにん')}。`, danger: `${R('根元', 'ねもと')}がグラグラしたり${R('根', 'ね')}と${R('地面', 'じめん')}の${R('間', 'あいだ')}に${R('隙間', 'すきま')}があれば「D」${R('評価', 'ひょうか')}。すぐ${R('専門家', 'せんもんか')}へ！` },
+      lean: { title: `${R('不自然', 'ふしぜん')}な${R('傾斜', 'けいしゃ')}`, summary: `${R('幹', 'みき')}の${R('傾', 'かたむ')}きを${R('見', 'み')}ます。${R('日陰側', 'ひかげがわ')}へ${R('伸', 'の')}びる${R('自然', 'しぜん')}な${R('傾斜', 'けいしゃ')}は${R('問題', 'もんだい')}なし。${R('根', 'ね')}の${R('支持力', 'しじりょく')}${R('不足', 'ふそく')}による${R('傾', 'かたむ')}きは${R('危険', 'きけん')}です。`, check: `${R('傾', 'かたむ')}いている${R('側', 'がわ')}の${R('地面', 'じめん')}が${R('盛', 'も')}り${R('上', 'あ')}がっていないか、${R('反対側', 'はんたいがわ')}の${R('地面', 'じめん')}に${R('亀裂', 'きれつ')}がないか${R('観察', 'かんさつ')}。`, danger: `${R('地際', 'じぎわ')}${R('周辺', 'しゅうへん')}の${R('亀裂', 'きれつ')}や${R('異常', 'いじょう')}な${R('盛', 'も')}り${R('上', 'あ')}がりがある${R('場合', 'ばあい')}は${R('非常', 'ひじょう')}に${R('危険', 'きけん')}です。` },
+      crack: { title: `${R('亀裂', 'きれつ')}（${R('幹', 'みき')}のひび${R('割', 'わ')}れ）`, summary: `${R('幹', 'みき')}に${R('入', 'はい')}った${R('裂', 'さ')}け${R('目', 'め')}。${R('腐朽', 'ふきゅう')}や${R('落雷', 'らくらい')}が${R('原因', 'げんいん')}で${R('生', 'しょう')}じ、${R('幹折', 'みきお')}れにつながる${R('重大', 'じゅうだい')}なサインです。`, check: `${R('亀裂', 'きれつ')}の${R('深', 'ふか')}さと${R('長', 'なが')}さを${R('確認', 'かくにん')}。${R('雨水', 'あまみず')}が${R('入', 'はい')}って${R('内部', 'ないぶ')}で${R('腐朽', 'ふきゅう')}が${R('進', 'すす')}んでいないかも${R('注意', 'ちゅうい')}。`, danger: `${R('大', 'おお')}きく${R('深', 'ふか')}い${R('亀裂', 'きれつ')}がある${R('場合', 'ばあい')}は${R('倒木', 'とうぼく')}・${R('枝折', 'えだお')}れの${R('危険', 'きけん')}が${R('非常', 'ひじょう')}に${R('高', 'たか')}い「D」${R('評価', 'ひょうか')}です。` },
+      fungusBody: { title: `${R('子実体', 'しじったい')}（キノコの${R('発生', 'はっせい')}）`, summary: `${R('幹', 'みき')}や${R('根元', 'ねもと')}に${R('生', 'は')}えるキノコは${R('内部腐朽', 'ないぶふきゅう')}の${R('氷山', 'ひょうざん')}の${R('一角', 'いっかく')}。${R('外', 'そと')}のキノコの${R('何百倍', 'なんびゃくばい')}もの${R('菌糸', 'きんし')}が${R('中', 'なか')}に${R('広', 'ひろ')}がっています。`, check: `キノコの${R('種類', 'しゅるい')}を${R('見分', 'みわ')}けましょう。ベッコウタケ（${R('茶色', 'ちゃいろ')}い${R('傘', 'かさ')}）は${R('最危険級', 'さいきけんきゅう')}です。`, danger: `ベッコウタケ・コフキサルノコシカケが${R('出', 'で')}ている${R('木', 'き')}は${R('内部腐朽', 'ないぶふきゅう')}が${R('深刻', 'しんこく')}です。` },
+      cavity: { title: `${R('開口空洞', 'かいこうくうどう')}（${R('幹', 'みき')}の${R('穴', 'あな')}）`, summary: `${R('幹', 'みき')}に${R('開', 'あ')}いた${R('穴', 'あな')}。${R('空洞', 'くうどう')}が${R('幹周', 'みきしゅう')}の1/3${R('以上', 'いじょう')}に${R('及', 'およ')}ぶと${R('幹折', 'みきお')}れの${R('危険', 'きけん')}が${R('急激', 'きゅうげき')}に${R('高', 'たか')}まります。`, check: `${R('空洞', 'くうどう')}の${R('幅', 'はば')}を${R('測', 'はか')}り、その${R('位置', 'いち')}の${R('幹周', 'みきしゅう')}と${R('比', 'くら')}べます。「${R('空洞幅', 'くうどうはば')}÷${R('幹周', 'みきしゅう')}」が1/3${R('以上', 'いじょう')}なら「D」。`, danger: `${R('幹', 'みき')}を${R('時計', 'とけい')}の${R('文字盤', 'もじばん')}と${R('考', 'かんが')}えて「12${R('時', 'じ')}〜4${R('時', 'じ')}まで${R('開', 'あ')}いていたら1/3」という${R('目安', 'めやす')}で${R('判断', 'はんだん')}。` },
+      bulge: { title: `${R('隆起', 'りゅうき')}（こぶ${R('状', 'じょう')}の${R('膨', 'ふく')}れ）`, summary: `${R('内部', 'ないぶ')}の${R('腐朽', 'ふきゅう')}や${R('空洞', 'くうどう')}に${R('対', 'たい')}して${R('木', 'き')}が${R('力学的', 'りきがくてき')}に${R('補強', 'ほきょう')}しようと${R('盛', 'も')}り${R('上', 'あ')}がる${R('現象', 'げんしょう')}。${R('内部異常', 'ないぶいじょう')}のサインです。`, check: `${R('幹', 'みき')}に「こぶ」のように${R('盛', 'も')}り${R('上', 'あ')}がっている${R('部分', 'ぶぶん')}があるかどうか${R('確認', 'かくにん')}。`, danger: `${R('幹周全体', 'みきしゅうぜんたい')}に${R('及', 'およ')}ぶ${R('隆起', 'りゅうき')}や${R('根元', 'ねもと')}の${R('大', 'おお')}きな${R('隆起', 'りゅうき')}は${R('内部', 'ないぶ')}に${R('深刻', 'しんこく')}な${R('腐朽', 'ふきゅう')}がある${R('可能性大', 'かのうせいだい')}。` },
+      decayExposed: { title: `${R('腐朽部露出', 'ふきゅうぶろしゅつ')}（${R('腐', 'くさ')}った${R('部分', 'ぶぶん')}が${R('見', 'み')}える）`, summary: `${R('幹', 'みき')}の${R('傷口', 'きずぐち')}や${R('枝', 'えだ')}の${R('付', 'つ')}け${R('根', 'ね')}から${R('腐', 'くさ')}った${R('部分', 'ぶぶん')}が${R('見', 'み')}えている${R('状態', 'じょうたい')}。スポンジ${R('状', 'じょう')}・${R('白', 'しろ')}や${R('茶色', 'ちゃいろ')}に${R('変色', 'へんしょく')}します。`, check: `${R('腐朽', 'ふきゅう')}の${R('範囲', 'はんい')}を${R('幹', 'みき')}の${R('周囲長', 'しゅういちょう')}と${R('比較', 'ひかく')}しどの${R('程度', 'ていど')}${R('広', 'ひろ')}がっているか${R('確認', 'かくにん')}。${R('触', 'さわ')}ると${R('柔', 'やわ')}らかくボロボロ。`, danger: `${R('周囲長', 'しゅういちょう')}の1/3${R('以上', 'いじょう')}に${R('及', 'およ')}ぶ${R('腐朽', 'ふきゅう')}は${R('非常', 'ひじょう')}に${R('危険', 'きけん')}です。` },
+      barkDamage: { title: `${R('樹皮枯死', 'じゅひこし')}・${R('欠損', 'けっそん')}`, summary: `${R('衝突', 'しょうとつ')}や${R('病害虫', 'びょうがいちゅう')}で${R('樹皮', 'じゅひ')}が${R('枯', 'か')}れたり${R('剥', 'は')}がれたりしている${R('状態', 'じょうたい')}。${R('傷口', 'きずぐち')}から${R('腐朽菌', 'ふきゅうきん')}が${R('入', 'はい')}ります。`, check: `${R('枯死部', 'こしぶ')}を${R('剥', 'は')}がして${R('内部', 'ないぶ')}の${R('腐朽', 'ふきゅう')}の${R('有無', 'うむ')}を${R('確認', 'かくにん')}。${R('環状', 'かんじょう')}に${R('剥', 'は')}がれると${R('木', 'き')}が${R('枯死', 'こし')}します。`, danger: `${R('周囲長', 'しゅういちょう')}の1/3${R('以上', 'いじょう')}に${R('及', 'およ')}ぶ${R('樹皮枯死', 'じゅひこし')}は${R('衰弱', 'すいじゃく')}が${R('進', 'すす')}んでいます。` },
+      jointAbnormality: { title: `${R('結合部', 'けつごうぶ')}の${R('変状', 'へんじょう')}（${R('枝', 'えだ')}の${R('又', 'また')}）`, summary: `${R('幹', 'みき')}と${R('枝', 'えだ')}の${R('分', 'わ')}かれ${R('目', 'め')}（${R('又', 'また')}）に${R('樹皮', 'じゅひ')}が${R('挟', 'はさ')}まった「${R('入', 'い')}り${R('皮', 'かわ')}」${R('状態', 'じょうたい')}。${R('強風', 'きょうふう')}で${R('裂', 'さ')}ける${R('危険', 'きけん')}があります。`, check: `${R('分岐角度', 'ぶんきかくど')}が${R('狭', 'せま')}い${R('枝', 'えだ')}（V${R('字', 'じ')}に${R('近', 'ちか')}い${R('又', 'また')}）を${R('注意深', 'ちゅういぶか')}く${R('観察', 'かんさつ')}。「U${R('字又', 'じまた')}＝${R('丈夫', 'じょうぶ')}」「V${R('字又', 'じまた')}＝${R('裂', 'さ')}けやすい」。`, danger: `${R('入', 'い')}り${R('皮', 'かわ')}が${R('深', 'ふか')}く${R('強風', 'きょうふう')}で${R('裂', 'さ')}けそうなものは「D」${R('評価', 'ひょうか')}です。` },
+      pestDamage: { title: `${R('穿孔害虫', 'せんこうがいちゅう')}（${R('幹', 'みき')}を${R('食', 'た')}べる${R('虫', 'むし')}）`, summary: `カミキリムシなど${R('幹', 'みき')}の${R('中', 'なか')}を${R('食', 'た')}べる${R('害虫', 'がいちゅう')}。${R('侵入口', 'しんにゅうぐち')}からオガクズのような${R('虫糞', 'むしぐそ')}（フラス）が${R('出', 'で')}ます。`, check: `${R('幹', 'みき')}や${R('枝', 'えだ')}に${R('小', 'ちい')}さな${R('穴', 'あな')}がないか、${R('穴', 'あな')}の${R('周', 'まわ')}りにオガクズ${R('状', 'じょう')}の${R('虫糞', 'むしぐそ')}が${R('落', 'お')}ちていないか${R('確認', 'かくにん')}。`, danger: `クビアカツヤカミキリ（${R('特定外来生物', 'とくていがいらいせいぶつ')}）の「${R('麺', 'めん')}${R('状', 'じょう')}のフラス」を${R('発見', 'はっけん')}したらすぐ${R('行政', 'ぎょうせい')}へ${R('通報', 'つうほう')}！` },
+      rootVisible: { title: `${R('根張', 'ねば')}り（ルートカラー）`, summary: `${R('地面', 'じめん')}と${R('幹', 'みき')}の${R('境目', 'さかいめ')}で${R('幹', 'みき')}が${R('根', 'ね')}に${R('向', 'む')}けて${R('広', 'ひろ')}がる${R('部分', 'ぶぶん')}が${R('見', 'み')}えるかを${R('確認', 'かくにん')}。${R('見', 'み')}えない${R('場合', 'ばあい')}は${R('根', 'ね')}の${R('問題', 'もんだい')}のサインです。`, check: `${R('地面', 'じめん')}と${R('幹', 'みき')}の${R('境界', 'きょうかい')}がワイングラスのように${R('広', 'ひろ')}がっていれば${R('正常', 'せいじょう')}。まっすぐ${R('電柱', 'でんちゅう')}のように${R('立', 'た')}っていたら${R('要注意', 'ようちゅうい')}。`, danger: `${R('根張', 'ねば')}りが${R('見', 'み')}えない${R('原因', 'げんいん')}には「${R('深植', 'ふかう')}え」「${R('土', 'つち')}の${R('盛', 'も')}り${R('過', 'す')}ぎ」「${R('根', 'ね')}の${R('腐朽', 'ふきゅう')}」があります。` },
+      tappingSound: { title: `${R('打診音異常', 'だしんおんいじょう')}（${R('叩', 'たた')}いた${R('音', 'おと')}）`, summary: `${R('木槌', 'もくつち')}で${R('幹', 'みき')}を${R('叩', 'たた')}き${R('音', 'おと')}の${R('違', 'ちが')}いで${R('内部', 'ないぶ')}の${R('腐朽', 'ふきゅう')}を${R('推定', 'すいてい')}。「コンコン」が${R('正常', 'せいじょう')}、「ポコポコ」は${R('異常', 'いじょう')}！`, check: `${R('軽', 'かる')}く${R('幹', 'みき')}を${R('叩', 'たた')}いて${R('正常部分', 'せいじょうぶぶん')}と${R('比較', 'ひかく')}。スイカを${R('叩', 'たた')}く${R('要領', 'ようりょう')}で${R('音', 'おと')}の${R('違', 'ちが')}いを${R('聞', 'き')}き${R('取', 'と')}ります。`, danger: `${R('広範囲', 'こうはんい')}で${R('打診音', 'だしんおん')}の${R('異常', 'いじょう')}がある${R('場合', 'ばあい')}は${R('大規模', 'だいきぼ')}な${R('腐朽', 'ふきゅう')}・${R('空洞', 'くうどう')}の${R('可能性', 'かのうせい')}があります。` },
+      penetrationAbnormality: { title: `${R('貫入異常', 'かんにゅういじょう')}（${R('根', 'ね')}の${R('腐朽', 'ふきゅう')}${R('検査', 'けんさ')}）`, summary: `${R('先', 'さき')}の${R('尖', 'とが')}った${R('鋼棒', 'こうぼう')}を${R('地際', 'じぎわ')}に${R('刺', 'さ')}して${R('根', 'ね')}の${R('腐朽', 'ふきゅう')}を${R('調', 'しら')}べます。${R('腐朽', 'ふきゅう')}していると${R('抵抗', 'ていこう')}なく${R('深', 'ふか')}く${R('入', 'はい')}ります。`, check: `${R('鋼棒', 'こうぼう')}を${R('地際', 'じぎわ')}の${R('周囲', 'しゅうい')}数カ${R('所', 'しょ')}に${R('刺', 'さ')}して${R('手応', 'てごた')}えの${R('違', 'ちが')}いを${R('確認', 'かくにん')}します。${R('専門業者', 'せんもんぎょうしゃ')}が${R('行', 'おこな')}う${R('検査', 'けんさ')}です。`, danger: `${R('抵抗', 'ていこう')}なく${R('深', 'ふか')}く${R('入', 'はい')}る${R('場合', 'ばあい')}は${R('根', 'ね')}の${R('腐朽', 'ふきゅう')}が${R('深刻', 'しんこく')}です。${R('外見', 'がいけん')}で${R('異常', 'いじょう')}を${R('感', 'かん')}じたら${R('専門家', 'せんもんか')}に${R('依頼', 'いらい')}を。` },
+      hangingBranch: { title: `ぶら${R('下', 'さ')}がり${R('枝', 'えだ')}`, summary: `${R('折', 'お')}れて${R('落', 'お')}ちずに${R('木', 'き')}に${R('引', 'ひ')}っかかっている${R('枝', 'えだ')}。わずかな${R('風', 'かぜ')}でも${R('落下', 'らっか')}する${R('危険', 'きけん')}があります！`, check: `${R('樹冠', 'じゅかん')}を${R('見上', 'みあ')}げて${R('引', 'ひ')}っかかっている${R('枝', 'えだ')}がないか${R('確認', 'かくにん')}。${R('逆光', 'ぎゃっこう')}で${R('見', 'み')}えにくければ${R('時間', 'じかん')}を${R('変', 'か')}えて。`, danger: `${R('大', 'おお')}きなぶら${R('下', 'さ')}がり${R('枝', 'えだ')}は${R('直', 'ただ')}ちに${R('落下', 'らっか')}の${R('危険', 'きけん')}あり。${R('木', 'き')}の${R('下', 'した')}への${R('立入', 'たちいり')}を${R('制限', 'せいげん')}してください。` },
+    };
+
+    // ─── アプリ状態 ───
+    let records = JSON.parse(localStorage.getItem('kinokoRecords') || '[]');
+    let photos = [];
+    let healthGrades = {};
+    let editingId = null;
+
+    // ─── IndexedDB ───
+    const IDB = { name: 'KinokoPhotoDB', ver: 2, _db: null };
+    function openDB() {
+      return new Promise((res, rej) => {
+        if (IDB._db) { res(IDB._db); return; }
+        const req = indexedDB.open(IDB.name, IDB.ver);
+        req.onupgradeneeded = e => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('photos')) db.createObjectStore('photos');
+          if (!db.objectStoreNames.contains('helpimgs')) db.createObjectStore('helpimgs');
+        };
+        req.onsuccess = e => { IDB._db = e.target.result; res(IDB._db); };
+        req.onerror = e => rej(e);
+      });
+    }
+
+    async function idbGet(store, key) {
+      const db = await openDB();
+      return new Promise(res => {
+        const r = db.transaction(store, 'readonly').objectStore(store).get(key);
+        r.onsuccess = e => res(e.target.result);
+        r.onerror = () => res(null);
+      });
+    }
+
+    async function idbPut(store, key, val) {
+      const db = await openDB();
+      return new Promise((res, rej) => {
+        const tx = db.transaction(store, 'readwrite');
+        tx.objectStore(store).put(val, key);
+        tx.oncomplete = () => res();
+        tx.onerror = e => rej(e);
+      });
+    }
+
+    async function idbDel(store, key) {
+      const db = await openDB();
+      return new Promise(res => {
+        const tx = db.transaction(store, 'readwrite');
+        tx.objectStore(store).delete(key);
+        tx.oncomplete = () => res();
+        tx.onerror = () => res();
+      });
+    }
+
+    function resizeImg(dataUrl, max = 1600) {
+      return new Promise(res => {
+        const img = new Image();
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          if (w > max || h > max) {
+            if (w >= h) { h = Math.round(h * max / w); w = max; }
+            else { w = Math.round(w * max / h); h = max; }
+          }
+          const c = document.createElement('canvas');
+          c.width = w;
+          c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          res(c.toDataURL('image/jpeg', 0.82));
+        };
+        img.onerror = () => res(dataUrl);
+        img.src = dataUrl;
+      });
+    }
+
+    // ─── 写真管理 ───
+    window.takePhoto = () => {
+      const i = document.getElementById('photoInput');
+      i.setAttribute('capture', 'environment');
+      i.click();
+    };
+    window.selectFromAlbum = () => {
+      const i = document.getElementById('photoInput');
+      i.removeAttribute('capture');
+      i.click();
+    };
+    document.getElementById('photoInput').addEventListener('change', async e => {
+      for (const f of e.target.files) {
+        const r = new FileReader();
+        r.onload = async ev => {
+          photos.push(await resizeImg(ev.target.result));
+          renderPhotos();
+        };
+        r.readAsDataURL(f);
+      }
+      e.target.value = '';
+    });
+
+    function renderPhotos() {
+      document.getElementById('photoCounter').innerHTML = `📸 ${photos.length}<ruby>枚<rt>まい</rt></ruby>`;
+      document.getElementById('photoContainer').innerHTML = photos.map((p, i) => `
+        <div class="photo-item">
+          <img class="photo-thumb" src="${p}">
+          <button class="photo-del" onclick="delPhoto(${i})">✕</button>
+        </div>`).join('');
+    }
+
+    window.delPhoto = i => {
+      if (confirm('この写真を削除しますか？')) {
+        photos.splice(i, 1);
+        renderPhotos();
+      }
+    };
+
+    // ─── スコア設定 ───
+    function setScore(btn) {
+      const { type, id, val } = btn.dataset;
+      const prev = btn.classList.contains(`sel-${val}`);
+      document.querySelectorAll(`[data-type="${type}"][data-id="${id}"]`).forEach(b => {
+        b.className = b.className.replace(/\bsel-\S+/g, '').trim();
+      });
+      if (!prev) {
+        btn.classList.add(`sel-${val}`);
+        healthGrades[id] = val;
+      } else {
+        delete healthGrades[id];
+      }
+      updateOverall();
+    }
+
+    function worstHealth() {
+      const o = { A: 0, B: 1, C: 2, D: 3 };
+      let w = 'A';
+      HEALTH_ITEMS.forEach(i => {
+        const g = healthGrades[i.id];
+        if (g && o[g] > o[w]) w = g;
+      });
+      return w;
+    }
+
+    function updateOverall() {
+      const grade = worstHealth();
+      const gEl = document.getElementById('overallGradeDisplay');
+      gEl.textContent = grade;
+      gEl.className = `grade-badge grade-${grade}`;
+      const tx = { A: '健全', B: '健全に近い（経過観察）', C: '要注意（専門家に相談）', D: '危険木（緊急対応）' };
+      document.getElementById('overallLevelDisplay').textContent = tx[grade] || '';
+    }
+
+    // ─── UI構築 ───
+    function buildUI() {
+      document.getElementById('health-items').innerHTML = HEALTH_ITEMS.map(item => `
+        <div class="item-row">
+          <label class="lbl">${item.name}
+            <button class="help-icon" onclick="showHelp('${item.id}','health')">?</button>
+          </label>
+          <div class="rgroup">
+            ${item.grades.map((g, i) => {
+              const off = item.off && item.off[g];
+              return `<button class="rbtn${off ? ' rbtn-off' : ''}" data-type="health" data-id="${item.id}" data-val="${g}"
+                ${off ? 'disabled' : ''} onclick="setScore(this)">
+                ${g}<small>${item.desc[i]}</small>
+              </button>`;
+            }).join('')}
+          </div>
+        </div>`).join('');
+    }
+
+    // ─── ヘルプポップアップ ───
+    const helpImgCache = {};
+    const helpAllImgs = {};
+    let currentHelpId = null;
+    let currentHelpImgIdx = 0;
+
+    window.showHelp = async (id, type) => {
+      const g = HEALTH_HELP[id];
+      if (!g) return;
+      currentHelpId = id;
+      currentHelpImgIdx = 0;
+
+      document.getElementById('helpContent').innerHTML = `
+        <h3>${g.title}</h3>
+        <div class="popup-source">出典：国交省樹木点検指針（案）・日本緑化センター資料</div>
+        <div class="popup-summary">${g.summary}</div>
+        <div class="popup-check">🔍 <strong>確認のポイント：</strong>${g.check}</div>
+        <div class="popup-danger">⚠️ <strong>特に気をつけること：</strong>${g.danger}</div>
+      `;
+
+      if (!helpImgCache[id]) {
+        const saved = await idbGet('helpimgs', 'helpimg_' + id);
+        helpImgCache[id] = saved || [];
+      }
+      const presets = (DEFAULT_IMGS[id] || []);
+      const userAdded = helpImgCache[id] || [];
+      helpAllImgs[id] = [...presets, ...userAdded];
+
+      renderHelpImgs();
+      document.getElementById('helpOverlay').classList.add('open');
+    };
+
+    window.closeHelp = () => document.getElementById('helpOverlay').classList.remove('open');
+    document.getElementById('helpOverlay').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeHelp();
+    });
+
+    function renderHelpImgs() {
+      const id = currentHelpId;
+      const allImgs = helpAllImgs[id] || [];
+      const presetCount = (DEFAULT_IMGS[id] || []).length;
+      const wrap = document.getElementById('helpImgsWrap');
+      const box = document.getElementById('helpImgsBox');
+      const nav = document.getElementById('helpImgsNav');
+      const cap = document.getElementById('helpImgsCaption');
+      const thumbList = document.getElementById('helpThumbList');
+      const uploadArea = document.getElementById('helpUploadArea');
+
+      uploadArea.style.display = 'flex';
+      wrap.style.display = 'block';
+
+      if (allImgs.length === 0) {
+        box.innerHTML = `<div class="hi-placeholder">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21,15 16,10 5,21"/>
+          </svg>
+          <span>写真を追加するとここに表示されます</span>
+        </div>`;
+        nav.innerHTML = '';
+        cap.textContent = '';
+        thumbList.innerHTML = '';
+        return;
+      }
+
+      box.innerHTML = allImgs.map((s, i) => `<img src="${s}" class="${i === currentHelpImgIdx ? 'hi-active' : ''}">`).join('');
+      const isPreset = currentHelpImgIdx < presetCount;
+      cap.textContent = `${currentHelpImgIdx + 1} / ${allImgs.length}　${isPreset ? '📐 解説イラスト' : '📸 追加写真'}`;
+
+      nav.innerHTML = `
+        <button class="hi-arrow" onclick="helpImgPrev()" ${allImgs.length <= 1 ? 'disabled' : ''}>‹</button>
+        ${allImgs.map((_, i) => `<button class="hi-dot${i === currentHelpImgIdx ? ' active' : ''}" onclick="gotoHelpImg(${i})"></button>`).join('')}
+        <button class="hi-arrow" onclick="helpImgNext()" ${allImgs.length <= 1 ? 'disabled' : ''}>›</button>
+      `;
+
+      thumbList.innerHTML = allImgs.map((s, i) => `
+        <div class="hi-thumb-wrap">
+          <img class="hi-thumb" src="${s}" onclick="gotoHelpImg(${i})" title="${i < presetCount ? '解説イラスト' : '追加写真'}">
+          ${i >= presetCount ? `<button class="hi-thumb-del" onclick="delHelpImg(${i - presetCount})">✕</button>` : '<span class="hi-preset-badge">📐</span>'}
+        </div>`).join('');
+    }
+
+    window.helpImgPrev = () => {
+      const imgs = helpAllImgs[currentHelpId] || [];
+      if (imgs.length < 2) return;
+      currentHelpImgIdx = (currentHelpImgIdx - 1 + imgs.length) % imgs.length;
+      renderHelpImgs();
+    };
+    window.helpImgNext = () => {
+      const imgs = helpAllImgs[currentHelpId] || [];
+      if (imgs.length < 2) return;
+      currentHelpImgIdx = (currentHelpImgIdx + 1) % imgs.length;
+      renderHelpImgs();
+    };
+    window.gotoHelpImg = i => {
+      currentHelpImgIdx = i;
+      renderHelpImgs();
+    };
+
+    window.addHelpImages = async e => {
+      const id = currentHelpId;
+      if (!helpImgCache[id]) helpImgCache[id] = [];
+      for (const f of e.target.files) {
+        const r = new FileReader();
+        await new Promise(res => {
+          r.onload = async ev => {
+            helpImgCache[id].push(await resizeImg(ev.target.result, 1200));
+            res();
+          };
+          r.readAsDataURL(f);
+        });
+      }
+      await idbPut('helpimgs', 'helpimg_' + id, [...helpImgCache[id]]);
+      const presets = (DEFAULT_IMGS[id] || []);
+      helpAllImgs[id] = [...presets, ...helpImgCache[id]];
+      currentHelpImgIdx = helpAllImgs[id].length - 1;
+      renderHelpImgs();
+      e.target.value = '';
+    };
+
+    window.delHelpImg = async i => {
+      if (!confirm('この写真を削除しますか？')) return;
+      const id = currentHelpId;
+      helpImgCache[id].splice(i, 1);
+      await idbPut('helpimgs', 'helpimg_' + id, [...helpImgCache[id]]);
+      const presets = (DEFAULT_IMGS[id] || []);
+      helpAllImgs[id] = [...presets, ...helpImgCache[id]];
+      currentHelpImgIdx = Math.max(0, Math.min(currentHelpImgIdx, helpAllImgs[id].length - 1));
+      renderHelpImgs();
+    };
+
+    // ─── 保存・編集・削除 ───
+    window.saveRecord = async () => {
+      const req = ['treeNo', 'surveyDate', 'inspector', 'species'];
+      let miss = false;
+      req.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el.value.trim()) { el.style.borderColor = '#c62828'; miss = true; }
+        else el.style.borderColor = '';
+      });
+      if (miss) {
+        alert('⚠️ 赤枠の必須項目を入力してください（木のNo.・調査日・調べた人・木の種類）');
+        return;
+      }
+      const worst = worstHealth();
+      const data = {
+        id: editingId || (Date.now() + '-' + Math.random().toString(36).slice(2)),
+        treeNo: document.getElementById('treeNo').value,
+        surveyDate: document.getElementById('surveyDate').value,
+        weather: document.getElementById('weather').value,
+        inspector: document.getElementById('inspector').value,
+        species: document.getElementById('species').value,
+        nickname: document.getElementById('nickname').value,
+        location: document.getElementById('location').value,
+        treeHeight: document.getElementById('treeHeight').value,
+        trunkGirth: document.getElementById('trunkGirth').value,
+        health: { ...healthGrades },
+        fungus: [...document.querySelectorAll('.fungus-check:checked')].map(c => c.value),
+        fungusOther: document.getElementById('fungusOther').value,
+        comment: document.getElementById('overallComment').value,
+        measures: [...document.querySelectorAll('.measure-check:checked')].map(c => c.value),
+        worstHealth: worst,
+        overall: worst,
+      };
+      await idbPut('photos', data.id, [...photos]);
+      if (editingId) {
+        const idx = records.findIndex(r => r.id === editingId);
+        if (idx !== -1) records[idx] = data;
+      } else {
+        records.unshift(data);
+      }
+      try {
+        localStorage.setItem('kinokoRecords', JSON.stringify(records));
+      } catch (e) {
+        alert('保存に失敗しました（容量不足の可能性）');
+        return;
+      }
+      alert(`✅ 保存しました！（判定：${worst}）`);
+      editingId = null;
+      document.getElementById('cancelEditBtn').style.display = 'none';
+      resetForm();
+      renderRecords();
+      showTab('records');
+    };
+
+    window.cancelEdit = () => {
+      if (confirm('編集をキャンセルしますか？')) {
+        editingId = null;
+        resetForm();
+        document.getElementById('cancelEditBtn').style.display = 'none';
+        showTab('records');
+      }
+    };
+
+    window.editRecord = async id => {
+      const r = records.find(r => r.id === id);
+      if (!r) return;
+      editingId = r.id;
+      ['treeNo', 'surveyDate', 'inspector', 'species', 'nickname', 'location', 'treeHeight', 'trunkGirth'].forEach(k => {
+        const el = document.getElementById(k);
+        if (el) el.value = r[k] || '';
+      });
+      document.getElementById('weather').value = r.weather || '晴れ';
+      document.getElementById('overallComment').value = r.comment || '';
+      document.getElementById('fungusOther').value = r.fungusOther || '';
+      Object.assign(healthGrades, r.health || {});
+      document.querySelectorAll('.rbtn').forEach(b => b.className = b.className.replace(/\bsel-\S+/g, '').trim());
+
+      HEALTH_ITEMS.forEach(it => {
+        if (healthGrades[it.id]) {
+          document.querySelector(`[data-type="health"][data-id="${it.id}"][data-val="${healthGrades[it.id]}"]`)?.classList.add(`sel-${healthGrades[it.id]}`);
+        }
+      });
+      document.querySelectorAll('.fungus-check').forEach(cb => cb.checked = (r.fungus || []).includes(cb.value));
+      document.querySelectorAll('.measure-check').forEach(cb => cb.checked = (r.measures || []).includes(cb.value));
+      photos = await idbGet('photos', r.id) || [];
+      renderPhotos();
+      updateOverall();
+      document.getElementById('cancelEditBtn').style.display = 'block';
+      showTab('inspect');
+    };
+
+    window.deleteRecord = async id => {
+      if (confirm('この記録を削除しますか？')) {
+        records = records.filter(r => r.id !== id);
+        localStorage.setItem('kinokoRecords', JSON.stringify(records));
+        await idbDel('photos', id);
+        renderRecords();
+      }
+    };
+
+    function resetForm() {
+      ['treeNo', 'inspector', 'species', 'nickname', 'location', 'treeHeight', 'trunkGirth', 'overallComment', 'fungusOther'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.value = ''; el.style.borderColor = ''; }
+      });
+      document.getElementById('surveyDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('weather').value = '晴れ';
+      Object.keys(healthGrades).forEach(k => delete healthGrades[k]);
+      document.querySelectorAll('.rbtn').forEach(b => b.className = b.className.replace(/\bsel-\S+/g, '').trim());
+      document.querySelectorAll('.fungus-check,.measure-check').forEach(cb => cb.checked = false);
+      photos = [];
+      renderPhotos();
+      updateOverall();
+      editingId = null;
+      document.getElementById('cancelEditBtn').style.display = 'none';
+    }
+
+    // ─── 記録一覧 ───
+    function renderRecords() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const sort = document.getElementById('sortSelect').value;
+      let f = records.filter(r => r?.id && (
+        (r.species || '').toLowerCase().includes(q) ||
+        (r.location || '').toLowerCase().includes(q) ||
+        (r.inspector || '').toLowerCase().includes(q) ||
+        (r.nickname || '').toLowerCase().includes(q)
+      ));
+      if (sort === 'date-desc') f.sort((a, b) => a.surveyDate < b.surveyDate ? 1 : -1);
+      else if (sort === 'date-asc') f.sort((a, b) => a.surveyDate > b.surveyDate ? 1 : -1);
+      else { const o = { A: 1, B: 2, C: 3, D: 4 }; f.sort((a, b) => (o[a.overall] || 5) - (o[b.overall] || 5)); }
+      document.getElementById('recordsList').innerHTML = f.length === 0
+        ? '<div style="text-align:center;padding:30px;color:#8a9a7a;">記録がありません</div>'
+        : f.map(r => `
+          <div class="record-card">
+            <div class="record-top">
+              <div>
+                <div class="record-name">${r.species}${r.nickname ? '（' + r.nickname + '）' : ''} — ${r.treeNo}</div>
+                <div class="record-meta">📍 ${r.location || '場所未登録'} 📅 ${r.surveyDate} 👤 ${r.inspector}</div>
+                <div class="record-meta">健全度：${r.worstHealth || '-'}${r.fungus && r.fungus.length ? ' 🍄 ' + r.fungus.join('・') : ''}</div>
+                ${r.measures && r.measures.length ? `<div class="record-meta">対処：${r.measures.join('・')}</div>` : ''}
+              </div>
+              <span class="grade-badge grade-${r.overall}">${r.overall}</span>
+            </div>
+            ${r.comment ? `<div style="font-size:.8rem;color:#5a6a4a;margin-top:6px;background:#f5f9f0;padding:8px 10px;border-radius:8px;">${r.comment}</div>` : ''}
+            <div class="record-acts">
+              <button class="btn-sec" onclick="editRecord('${r.id}')">✏️ 編集</button>
+              <button class="btn-sec" onclick="exportOneExcel('${r.id}')">📊 Excel</button>
+              <button class="btn-sec btn-danger" onclick="deleteRecord('${r.id}')">🗑️ 削除</button>
+            </div>
+          </div>`).join('');
+    }
+
+    // ─── Excel出力 ───
+    function dlWB(wb, name) {
+      const buf = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+      const url = URL.createObjectURL(new Blob([buf], { type: 'application/octet-stream' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function makeWB(r) {
+      const wb = XLSX.utils.book_new();
+      const ws1 = XLSX.utils.aoa_to_sheet([
+        ['きのこえ 樹木診断記録'],
+        ['木のNo.', r.treeNo, '調査日', r.surveyDate, '天候', r.weather, '調べた人', r.inspector],
+        ['木の種類', r.species, '愛称', r.nickname || ''],
+        ['場所', r.location, '高さ(m)', r.treeHeight, '幹周(cm)', r.trunkGirth],
+        ['総合判定', r.overall, '健全度', r.worstHealth || ''],
+        ['キノコ', (r.fungus || []).join('・') + (r.fungusOther ? '・' + r.fungusOther : '')],
+        ['必要措置', (r.measures || []).join('・')],
+        ['所見', r.comment || ''],
+      ]);
+      ws1['!cols'] = [{ wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 14 }, { wch: 12 }, { wch: 14 }];
+      XLSX.utils.book_append_sheet(wb, ws1, '基本情報');
+
+      const rows3 = [['Ⅰ-3 安全チェック（健全度）'], ['評価項目', '評価', '状態']];
+      HEALTH_ITEMS.forEach(it => {
+        const g = r.health?.[it.id];
+        rows3.push([it.nameExcel, g || '未記入', g ? it.desc[it.grades.indexOf(g)] || '' : '']);
+      });
+      rows3.push(['', '', ''], ['最悪値（健全度）', r.worstHealth || '', '']);
+      const ws3 = XLSX.utils.aoa_to_sheet(rows3);
+      ws3['!cols'] = [{ wch: 26 }, { wch: 10 }, { wch: 28 }];
+      XLSX.utils.book_append_sheet(wb, ws3, '健全度');
+      return wb;
+    }
+
+    function collectCurrentData() {
+      const worst = worstHealth();
+      return {
+        treeNo: document.getElementById('treeNo').value || '未設定',
+        surveyDate: document.getElementById('surveyDate').value,
+        weather: document.getElementById('weather').value,
+        inspector: document.getElementById('inspector').value,
+        species: document.getElementById('species').value,
+        nickname: document.getElementById('nickname').value,
+        location: document.getElementById('location').value,
+        treeHeight: document.getElementById('treeHeight').value,
+        trunkGirth: document.getElementById('trunkGirth').value,
+        health: { ...healthGrades },
+        fungus: [...document.querySelectorAll('.fungus-check:checked')].map(c => c.value),
+        fungusOther: document.getElementById('fungusOther').value,
+        comment: document.getElementById('overallComment').value,
+        measures: [...document.querySelectorAll('.measure-check:checked')].map(c => c.value),
+        worstHealth: worst,
+        overall: worst,
+      };
+    }
+
+    window.exportSingleExcel = () => {
+      const r = collectCurrentData();
+      dlWB(makeWB(r), `きのこえ_${r.treeNo}_${r.surveyDate}.xlsx`);
+    };
+
+    window.exportOneExcel = id => {
+      const r = records.find(r => r.id === id);
+      if (r) dlWB(makeWB(r), `きのこえ_${r.treeNo}_${r.surveyDate}.xlsx`);
+    };
+
+    window.exportAllExcel = () => {
+      if (!records.length) { alert('記録がありません'); return; }
+      const wb = XLSX.utils.book_new();
+      const rows = [['木のNo.', '調査日', '種類', '愛称', '場所', '調べた人', '健全度', '総合判定', 'キノコ', '措置', '所見']];
+      records.forEach(r => rows.push([r.treeNo, r.surveyDate, r.species, r.nickname || '', r.location, r.inspector, r.worstHealth || '', r.overall, (r.fungus || []).join('・'), (r.measures || []).join('・'), r.comment || '']));
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = [{ wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 18 }, { wch: 18 }, { wch: 22 }];
+      XLSX.utils.book_append_sheet(wb, ws, '記録一覧');
+      dlWB(wb, `きのこえ_全記録_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
+    window.exportJSON = () => {
+      const a = document.createElement('a');
+      a.href = 'data:application/json,' + encodeURIComponent(JSON.stringify(records, null, 2));
+      a.download = `きのこえ_バックアップ_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+    };
+
+    window.importJSON = () => document.getElementById('jsonInput').click();
+
+    window.loadJSON = e => {
+      const f = e.target.files[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = ev => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (Array.isArray(data)) {
+            if (confirm(`${data.length}件のデータを読み込みます。OK？`)) {
+              records = [...records, ...data.filter(d => d?.id && !records.find(r => r.id === d.id))];
+              localStorage.setItem('kinokoRecords', JSON.stringify(records));
+              renderRecords();
+              alert('読み込み完了！');
+            }
+          } else alert('ファイルが正しくありません');
+        } catch { alert('読み込みに失敗しました'); }
+        e.target.value = '';
+      };
+      r.readAsText(f);
+    };
+
+    // ─── タブ切り替え ───
+    function showTab(id) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + id).classList.add('active');
+      const idx = { inspect: 0, records: 1, manual: 2 }[id] || 0;
+      document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ─── 初期化 ───
+    document.getElementById('surveyDate').value = new Date().toISOString().split('T')[0];
+    buildUI();
+    renderRecords();
+  </script>
+
+</body>
+</html>
